@@ -46,24 +46,21 @@ class FTPConnect {
   /// in case of a poor connexion for example
   Future<bool> uploadFile(File fileToUpload,
       {String pRemoteName = '', int pRetryCount = 1}) async {
-    bool lResult = false;
     for (int lRetryCount = 1; lRetryCount <= pRetryCount; lRetryCount++) {
       try {
         this.ftpClient.connect();
         await this.ftpClient.uploadFile(fileToUpload, sRemoteName: pRemoteName);
+        this.ftpClient.disconnect();
         //if there is no exception we exit the loop
         return true;
       } catch (e) {
-        //If lRetryCount==this.retryCount means that we tried all attempts
-        //and we should exit with False
-        if (lRetryCount == pRetryCount) {
-          lResult = false;
-        }
-      } finally {
-        this.ftpClient.disconnect();
+        //disconnect if we are connected
+        try {
+          this.ftpClient.disconnect();
+        }catch(ignore){}
       }
     }
-    return lResult;
+    return false;
   }
 
   /// Download the Remote File [pRemoteName] to the local File [pLocalFile]

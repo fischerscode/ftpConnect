@@ -8,6 +8,7 @@
 .buildlog/
 .history
 .svn/
+*ftpAuth*
 
 # IntelliJ related
 *.iml
