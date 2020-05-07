@@ -4,6 +4,7 @@ import 'package:example/ftpAuth.dart';
 import 'package:flutter/material.dart';
 import 'package:ftpconnect/ftpConnect.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:archive/archive_io.dart';
 
 void main() => runApp(MyApp());
 
@@ -38,12 +39,12 @@ class MyHomePage extends StatelessWidget {
               RaisedButton(
                 onPressed: _uploadStepByStep,
                 child: Text("Upload step by step"),
-                color: Theme.of(context).primaryColor,
+                color: Theme.of(context).primaryColorDark,
               ),
               RaisedButton(
                 onPressed: _uploadWithRetry,
                 child: Text("Upload with retry"),
-                color: Theme.of(context).primaryColor,
+                color: Theme.of(context).primaryColorDark,
               )
             ],
           ),
@@ -53,12 +54,27 @@ class MyHomePage extends StatelessWidget {
               RaisedButton(
                 onPressed: _downloadStepByStep,
                 child: Text("Download step by step"),
-                color: Theme.of(context).primaryColorDark,
+                color: Theme.of(context).primaryColor,
               ),
               RaisedButton(
                 onPressed: _downloadWithRetry,
                 child: Text("Download with retry"),
-                color: Theme.of(context).primaryColorDark,
+                color: Theme.of(context).primaryColor,
+              )
+            ],
+          ),
+          ButtonBar(
+            alignment: MainAxisAlignment.center,
+            children: <Widget>[
+              RaisedButton(
+                onPressed: _uploadWithCompress,
+                child: Text("Compress & Upload Zip"),
+                color: Theme.of(context).primaryColorLight,
+              ),
+              RaisedButton(
+                onPressed: _downloadZipAndUnZip,
+                child: Text("Download Zip & decompress"),
+                color: Theme.of(context).primaryColorLight,
               )
             ],
           ),
@@ -135,6 +151,49 @@ class MyHomePage extends StatelessWidget {
       ftpConnect.ftpClient.disconnect();
     } catch (e) {
       await _log('file downloaded : FAILED');
+    }
+  }
+
+  Future<void> _uploadWithCompress({String filename = 'flutterZip.zip'}) async {
+    FTPConnect ftpConnect =
+        FTPConnect(FTPAuth.host, user: FTPAuth.user, pass: FTPAuth.pass);
+    await _log('Compressing file ...');
+
+    File fileToCompress = await _fileMock(
+        fileName: 'fileToCompress.txt', content: 'uploaded into a zip file');
+    final zipPath = (await getTemporaryDirectory()).path + '/$filename';
+
+    ftpConnect.zipFiles([fileToCompress.path], zipPath);
+
+    await _log('Uploading Zip file ...');
+    bool res = await ftpConnect.uploadFile(File(zipPath), pRetryCount: 2);
+    await _log('Zip file uploaded: ' + (res ? 'SUCCESSFULLY' : 'FAILED'));
+  }
+
+  Future<void> _downloadZipAndUnZip() async {
+    //this will upload a flutterZip.zip file (create a ftp file to be downloaded)
+    String ftpFileName = 'flutterZip.zip';
+    await _uploadWithCompress(filename: ftpFileName);
+    //we delete the file locally
+    File((await getTemporaryDirectory()).path + '/$ftpFileName').deleteSync();
+    //start downloading the zip file
+    await _log('Downloading Zip file...');
+    FTPConnect ftpConnect =
+        FTPConnect(FTPAuth.host, user: FTPAuth.user, pass: FTPAuth.pass);
+    //here we just prepare a file as a path for the downloaded file
+    File downloadedZipFile = await _fileMock(fileName: 'ZipDownloaded.zip');
+    bool res = await ftpConnect.downloadFile(ftpFileName, downloadedZipFile);
+    if (res) {
+      await _log('Zip file downloaded  path: ${downloadedZipFile.path}');
+      await _log('UnZip files...');
+      await _log('origin zip file\n' +
+          downloadedZipFile.path +
+          '\n\n\n Extracted files\n' +
+          ftpConnect
+              .unZipFile(downloadedZipFile, downloadedZipFile.parent.path)
+              .reduce((v, e) => v + '\n' + e));
+    } else {
+      await _log('Zip file downloaded FAILED');
     }
   }
 
