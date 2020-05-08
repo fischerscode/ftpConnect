@@ -91,6 +91,25 @@ class FTPConnect {
     return lResult;
   }
 
+  /// check the existence of the Directory with the Name of [pDirectory].
+  ///
+  /// Returns `true` if the directory was changed successfully
+  /// Returns `false` if the directory could not be changed (does not exist, no permissions or another error)
+  bool checkFolderExistence(String pDirectory) {
+    return this.ftpClient.changeDirectory(pDirectory);
+  }
+
+  /// Create a new Directory with the Name of [pDirectory] in the current directory if it does not exist.
+  ///
+  /// Returns `true` if the directory exists or was created successfully
+  /// Returns `false` if the directory not found and could not be created
+  bool createFolderIfNotExist(String pDirectory) {
+    if (!checkFolderExistence(pDirectory)) {
+      return this.ftpClient.makeDirectory(pDirectory);
+    }
+    return true;
+  }
+
   ///Function that compress list of files and directories into a Zip file
   ///Return true if files compression is finished successfully
   ///[paths] list of files and directories paths to be compressed into a Zip file
@@ -112,7 +131,8 @@ class FTPConnect {
   ///Function that unZip a zip file and returns the decompressed files/directories path
   ///[zipFile] file to decompress
   ///[destinationPath] local directory path where the zip file will be extracted
-  List<String> unZipFile(File zipFile, String destinationPath) {
+  ///[password] optional: use password if the zip is crypted
+  List<String> unZipFile(File zipFile, String destinationPath, {password}) {
     //path should ends with '/'
     if (destinationPath != null && !destinationPath.endsWith('/'))
       destinationPath += '/';
@@ -123,7 +143,7 @@ class FTPConnect {
     final bytes = zipFile.readAsBytesSync();
 
     // Decode the Zip file
-    final archive = ZipDecoder().decodeBytes(bytes);
+    final archive = ZipDecoder().decodeBytes(bytes, password: password);
 
     // Extract the contents of the Zip archive to disk.
     for (final file in archive) {

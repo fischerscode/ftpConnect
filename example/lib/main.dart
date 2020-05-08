@@ -1,10 +1,8 @@
 import 'dart:io';
 
-import 'package:example/ftpAuth.dart';
 import 'package:flutter/material.dart';
 import 'package:ftpconnect/ftpConnect.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:archive/archive_io.dart';
 
 void main() => runApp(MyApp());
 
@@ -90,7 +88,7 @@ class MyHomePage extends StatelessWidget {
 
   Future<void> _uploadStepByStep() async {
     FTPConnect ftpConnect =
-        FTPConnect(FTPAuth.host, user: FTPAuth.user, pass: FTPAuth.pass);
+        FTPConnect("example.net", user: 'user', pass: 'pass');
     try {
       await _log('Connecting to FTP ...');
       ftpConnect.ftpClient.connect();
@@ -107,7 +105,8 @@ class MyHomePage extends StatelessWidget {
 
   Future<void> _uploadWithRetry() async {
     FTPConnect ftpConnect =
-        FTPConnect(FTPAuth.host, user: FTPAuth.user, pass: FTPAuth.pass);
+        FTPConnect("example.net", user: 'user', pass: 'pass');
+
     File fileToUpload = await _fileMock(
         fileName: 'uploadwithRetry.txt', content: 'uploaded with Retry');
     await _log('Uploading ...');
@@ -118,7 +117,8 @@ class MyHomePage extends StatelessWidget {
   Future<void> _downloadWithRetry() async {
     await _log('Downloading ...');
     FTPConnect ftpConnect =
-        FTPConnect(FTPAuth.host, user: FTPAuth.user, pass: FTPAuth.pass);
+        FTPConnect("example.net", user: 'user', pass: 'pass');
+
     String fileName = 'uploadedDownload.txt';
     File fileToUpload = await _fileMock(
         fileName: fileName, content: 'test download with retry');
@@ -136,8 +136,10 @@ class MyHomePage extends StatelessWidget {
     try {
       await _log('Connecting to FTP ...');
       FTPConnect ftpConnect =
-          FTPConnect(FTPAuth.host, user: FTPAuth.user, pass: FTPAuth.pass);
+          FTPConnect("example.net", user: 'user', pass: 'pass');
+
       ftpConnect.ftpClient.connect();
+
       await _log('Downloading ...');
       String fileName = 'uploadedDownload.txt';
       File fileToUpload = await _fileMock(
@@ -156,7 +158,7 @@ class MyHomePage extends StatelessWidget {
 
   Future<void> _uploadWithCompress({String filename = 'flutterZip.zip'}) async {
     FTPConnect ftpConnect =
-        FTPConnect(FTPAuth.host, user: FTPAuth.user, pass: FTPAuth.pass);
+        FTPConnect("example.net", user: 'user', pass: 'pass');
     await _log('Compressing file ...');
 
     File fileToCompress = await _fileMock(
@@ -178,8 +180,9 @@ class MyHomePage extends StatelessWidget {
     File((await getTemporaryDirectory()).path + '/$ftpFileName').deleteSync();
     //start downloading the zip file
     await _log('Downloading Zip file...');
+
     FTPConnect ftpConnect =
-        FTPConnect(FTPAuth.host, user: FTPAuth.user, pass: FTPAuth.pass);
+        FTPConnect("example.net", user: 'user', pass: 'pass');
     //here we just prepare a file as a path for the downloaded file
     File downloadedZipFile = await _fileMock(fileName: 'ZipDownloaded.zip');
     bool res = await ftpConnect.downloadFile(ftpFileName, downloadedZipFile);
