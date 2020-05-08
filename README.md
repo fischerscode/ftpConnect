@@ -31,7 +31,7 @@
 
 
 ## Example upload file
-#####example 1:
+###example 1:
 ```dart
 import 'dart:io';
 import 'package:ftpconnect/ftpConnect.dart';
@@ -44,7 +44,7 @@ main() async{
 }
 ```
 
-#####example 2: step by step
+###example 2: step by step
 ```dart
 import 'dart:io';
 import 'package:ftpconnect/ftpConnect.dart';
@@ -63,7 +63,7 @@ main() async{
 ```
 
 ## Download file
-#####example 1:
+###example 1:
 ```dart
 import 'dart:io';
 import 'package:ftpconnect/ftpConnect.dart';
@@ -77,7 +77,7 @@ main() async{
 }
 ```
 
-#####example 2: step by step
+###example 2: step by step
 ```dart
 import 'dart:io';
 import 'package:ftpconnect/ftpConnect.dart';
@@ -95,7 +95,7 @@ main() {
 }
 ```
 ## Other Features
-#####Directory functions:
+###Directory functions:
 ```dart
 //Get directory content
 ftpConnect.ftpClient.listDirectoryContent();
@@ -118,7 +118,7 @@ ftpConnect.checkFolderExistence('dirToCheck');
 //create a directory if it does not exist
 ftpConnect.createFolderIfNotExist('dirToCreate');
 ```
-#####File functions:
+###File functions:
 ```dart
 //rename file
 ftpConnect.ftpClient.rename('test1.txt', 'test2.txt');
@@ -126,7 +126,7 @@ ftpConnect.ftpClient.rename('test1.txt', 'test2.txt');
 //delete file
 ftpClient.deleteFile('test2.zip');
 ```
-#####Zip functions:
+###Zip functions:
 ```dart
 //compress a list of files/directories into Zip file
 ftpConnect.zipFiles(List<String> paths, String destinationZipFile);
