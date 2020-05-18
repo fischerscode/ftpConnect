@@ -118,8 +118,7 @@ class FTPConnect {
     for (int lRetryCount = 1; lRetryCount <= pRetryCount; lRetryCount++) {
       try {
         this.ftpClient.connect();
-        await downloadDir(
-            pRemoteDir, Directory(join(pLocalDir.path, pRemoteDir)));
+        await downloadDir(pRemoteDir, pLocalDir);
         //if there is no exception we exit the loop
         return true;
       } catch (e) {
