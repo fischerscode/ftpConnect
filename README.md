@@ -24,7 +24,7 @@
 
 ## Key Features
 * Upload files to FTP
-* Download files from FTP
+* Download files/directories from FTP
 * List FTP directory contents
 * Manage FTP files (rename/delete)
 * Manage file zipping/unzipping
@@ -124,7 +124,7 @@ ftpConnect.createFolderIfNotExist('dirToCreate');
 ftpConnect.ftpClient.rename('test1.txt', 'test2.txt');
 
 //delete file
-ftpClient.deleteFile('test2.zip');
+ftpConnect.ftpClient.deleteFile('test2.zip');
 ```
 ###Zip functions:
 ```dart

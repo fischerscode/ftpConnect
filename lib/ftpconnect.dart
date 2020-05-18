@@ -3,6 +3,7 @@ library ftpconnect;
 import 'dart:io';
 import 'package:archive/archive_io.dart';
 import 'package:ftpclient/ftpclient.dart';
+import 'package:path/path.dart';
 
 class FTPConnect {
   /// Create a FTP Connect instance
@@ -67,28 +68,68 @@ class FTPConnect {
   /// [pRetryCount] number of attempts
   ///
   /// this strategy can be used when we don't need to go step by step
-  /// (connect -> download -> disconnect) or there is a need for a number of attemps
+  /// (connect -> download -> disconnect) or there is a need for a number of attempts
   /// in case of a poor connexion for example
   Future<bool> downloadFile(String pRemoteName, File pLocalFile,
       {int pRetryCount = 1}) async {
-    bool lResult = false;
     for (int lRetryCount = 1; lRetryCount <= pRetryCount; lRetryCount++) {
       try {
         this.ftpClient.connect();
         this.ftpClient.downloadFile(pRemoteName, pLocalFile);
+        this.ftpClient.disconnect();
         //if there is no exception we exit the loop
         return true;
       } catch (e) {
-        //If lRetryCount==this.retryCount means that we tried all attempts
-        //and we should exit with False
-        if (lRetryCount == pRetryCount) {
-          lResult = false;
-        }
-      } finally {
-        this.ftpClient.disconnect();
+        //disconnect if we are connected
+        try {
+          this.ftpClient.disconnect();
+        } catch (ignore) {}
       }
     }
-    return lResult;
+    return false;
+  }
+
+  /// Download the Remote Directory [pRemoteDir] to the local File [pLocalDir]
+  /// [pRetryCount] number of attempts
+  Future<bool> downloadDirectory(String pRemoteDir, Directory pLocalDir,
+      {int pRetryCount = 1}) async {
+    Future<bool> downloadDir(String pRemoteDir, Directory pLocalDir) async {
+      //read remote directory content
+      if (this.ftpClient.changeDirectory(pRemoteDir)) {
+        List<FTPEntry> dirContent = this.ftpClient.listDirectoryContent();
+        await Future.forEach(dirContent, (FTPEntry entry) async {
+          if (entry.type == 'file' && entry.size > 0) {
+            File localFile = File(join(pLocalDir.path, entry.name));
+            ftpClient.downloadFile(entry.name, localFile);
+          } else if (entry.type == 'dir') {
+            //create a local directory
+            var localDir = await Directory(join(pLocalDir.path, entry.name))
+                .create(recursive: true);
+            await downloadDir(entry.name, localDir);
+            //back to current folder
+            this.ftpClient.changeDirectory('..');
+          }
+        });
+        return true;
+      }
+      return false;
+    }
+
+    for (int lRetryCount = 1; lRetryCount <= pRetryCount; lRetryCount++) {
+      try {
+        this.ftpClient.connect();
+        await downloadDir(
+            pRemoteDir, Directory(join(pLocalDir.path, pRemoteDir)));
+        //if there is no exception we exit the loop
+        return true;
+      } catch (e) {
+        //disconnect if we are connected
+        try {
+          this.ftpClient.disconnect();
+        } catch (ignore) {}
+      }
+    }
+    return false;
   }
 
   /// check the existence of the Directory with the Name of [pDirectory].

@@ -76,6 +76,10 @@ class MyHomePage extends StatelessWidget {
               )
             ],
           ),
+          RaisedButton(
+            child: Text("Download Directory"),
+            onPressed: () => _downloadDirectory(),
+          ),
           ValueListenableBuilder(
               valueListenable: _logNotifier,
               builder: (context, String text, widget) {
@@ -198,6 +202,17 @@ class MyHomePage extends StatelessWidget {
     } else {
       await _log('Zip file downloaded FAILED');
     }
+  }
+
+  Future<void> _downloadDirectory() async {
+    FTPConnect ftpConnect =
+        FTPConnect("example.net", user: 'user', pass: 'pass');
+    await _log('Download Directory  ...');
+
+    var localDir = await getTemporaryDirectory();
+    var res = await ftpConnect.downloadDirectory('flutter', localDir);
+
+    await _log('Downloading directory: ' + (res ? 'SUCCESSFULLY' : 'FAILED'));
   }
 
   ///an auxiliary function that manage showed log to UI
