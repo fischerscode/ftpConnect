@@ -1,3 +1,5 @@
+## [0.1.4] - 2020.05.19
+* make all functions async
 ## [0.1.3] - 2020.05.18
 * improve Directory download
 ## [0.1.2] - 2020.05.18
