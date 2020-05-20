@@ -113,6 +113,17 @@ class FTPConnect {
     return FTPFile(_socket).delete(sFilename);
   }
 
+  /// check the existence of  the file [sFilename] from the server
+  Future<bool> existFile(String sFilename) {
+    return FTPFile(_socket).exist(sFilename);
+  }
+
+  /// returns the file [sFilename] size from server,
+  /// returns -1 if file does not exist
+  Future<int> sizeFile(String sFilename) {
+    return FTPFile(_socket).size(sFilename);
+  }
+
   /// Upload the File [fileToUpload] to the current directory
   /// if [pRemoteName] is not setted the remote file will take take the same local name
   /// [pRetryCount] number of attempts

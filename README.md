@@ -123,6 +123,12 @@ ftpConnect.createFolderIfNotExist('dirToCreate');
 //rename file
 ftpConnect.rename('test1.txt', 'test2.txt');
 
+//file size
+ftpConnect.sizeFile('test1.txt');
+
+//file existence
+ftpConnect.existFile('test1.txt');
+
 //delete file
 ftpConnect.deleteFile('test2.zip');
 ```

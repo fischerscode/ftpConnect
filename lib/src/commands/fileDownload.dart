@@ -6,6 +6,7 @@ import '../ftpSocket.dart';
 import '../transferMode.dart';
 import '../debug/debugLog.dart';
 import '../util/transferUtil.dart';
+import 'file.dart';
 
 class FileDownload {
   final FTPSocket _socket;
@@ -17,6 +18,10 @@ class FileDownload {
 
   Future<bool> downloadFile(String sRemoteName, File fLocalFile) async {
     _log.log('Download $sRemoteName to ${fLocalFile.path}');
+
+    if(! await FTPFile(_socket).exist(sRemoteName)){
+      throw FTPException('Remote File $sRemoteName does not exist!');
+    }
 
     // Transfer Mode
     await TransferUtil.setTransferMode(_socket, _mode);
@@ -33,12 +38,6 @@ class FileDownload {
 
     await _socket.sendCommand('RETR $sRemoteName');
 
-//    sResponse = await _socket.readResponse();
-//    if (sResponse.startsWith('550')) {
-//      throw FTPException('Remote File $sRemoteName does not exist!', sResponse);
-//    }
-
-
     // Data Transfer Socket
     _log.log('Opening DataSocket to Port $iPort');
     RawSocket dataSocket = await RawSocket.connect(_socket.host, iPort);
@@ -50,7 +49,6 @@ class FileDownload {
       // Transfer file
       switch (event) {
         case RawSocketEvent.read:
-
           var buffer = dataSocket.read();
           await lFile.writeFrom(buffer);
           iRead += buffer.length;

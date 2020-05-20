@@ -29,4 +29,20 @@ class FTPFile {
     String sResponse = await _socket.readResponse();
     return sResponse.startsWith('250');
   }
+
+  Future<bool> exist(String sFilename) async {
+    return await size(sFilename) != -1;
+  }
+
+  Future<int> size(String sFilename) async {
+    await _socket.sendCommand('SIZE $sFilename');
+
+    try{
+      String sResponse = await _socket.readResponse();
+      String size = sResponse.replaceAll('213 ','');
+      return int.parse(size);
+    }catch(e){
+      return -1;
+    }
+  }
 }
