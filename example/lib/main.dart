@@ -93,15 +93,16 @@ class MyHomePage extends StatelessWidget {
   Future<void> _uploadStepByStep() async {
     FTPConnect ftpConnect =
         FTPConnect("example.net", user: 'user', pass: 'pass');
+
     try {
       await _log('Connecting to FTP ...');
-      ftpConnect.ftpClient.connect();
+      await ftpConnect.connect();
       File fileToUpload = await _fileMock(
           fileName: 'uploadStepByStep.txt', content: 'uploaded Step By Step');
       await _log('Uploading ...');
-      await ftpConnect.ftpClient.uploadFile(fileToUpload);
+      await ftpConnect.uploadFile(fileToUpload);
       await _log('file uploaded sucessfully');
-      ftpConnect.ftpClient.disconnect();
+      await ftpConnect.disconnect();
     } catch (e) {
       await _log('Error: ${e.toString()}');
     }
@@ -114,7 +115,8 @@ class MyHomePage extends StatelessWidget {
     File fileToUpload = await _fileMock(
         fileName: 'uploadwithRetry.txt', content: 'uploaded with Retry');
     await _log('Uploading ...');
-    bool res = await ftpConnect.uploadFile(fileToUpload, pRetryCount: 2);
+    bool res =
+        await ftpConnect.uploadFileWithRetry(fileToUpload, pRetryCount: 2);
     await _log('file uploaded: ' + (res ? 'SUCCESSFULLY' : 'FAILED'));
   }
 
@@ -123,15 +125,11 @@ class MyHomePage extends StatelessWidget {
     FTPConnect ftpConnect =
         FTPConnect("example.net", user: 'user', pass: 'pass');
 
-    String fileName = 'uploadedDownload.txt';
-    File fileToUpload = await _fileMock(
-        fileName: fileName, content: 'test download with retry');
-    //we upload a file and we try to download it
-    await ftpConnect.uploadFile(fileToUpload);
+    String fileName = 'flutter/test.txt';
     //here we just prepare a file as a path for the downloaded file
     File downloadedFile = await _fileMock(fileName: 'downloadwithRetry.txt');
-    bool res =
-        await ftpConnect.downloadFile(fileName, downloadedFile, pRetryCount: 2);
+    bool res = await ftpConnect.downloadFileWithRetry(fileName, downloadedFile,
+        pRetryCount: 1);
     await _log('file downloaded  ' +
         (res ? 'path: ${downloadedFile.path}' : 'FAILED'));
   }
@@ -142,19 +140,16 @@ class MyHomePage extends StatelessWidget {
       FTPConnect ftpConnect =
           FTPConnect("example.net", user: 'user', pass: 'pass');
 
-      ftpConnect.ftpClient.connect();
+      await ftpConnect.connect();
 
       await _log('Downloading ...');
-      String fileName = 'uploadedDownload.txt';
-      File fileToUpload = await _fileMock(
-          fileName: fileName, content: 'test download step by step');
-      //we upload a file and we try to download it
-      await ftpConnect.ftpClient.uploadFile(fileToUpload);
+      String fileName = 'flutter/test.txt';
+
       //here we just prepare a file as a path for the downloaded file
       File downloadedFile = await _fileMock(fileName: 'downloadStepByStep.txt');
-      ftpConnect.ftpClient.downloadFile(fileName, downloadedFile);
+      await ftpConnect.downloadFile(fileName, downloadedFile);
       await _log('file downloaded path: ${downloadedFile.path}');
-      ftpConnect.ftpClient.disconnect();
+      await ftpConnect.disconnect();
     } catch (e) {
       await _log('file downloaded : FAILED');
     }
@@ -163,16 +158,18 @@ class MyHomePage extends StatelessWidget {
   Future<void> _uploadWithCompress({String filename = 'flutterZip.zip'}) async {
     FTPConnect ftpConnect =
         FTPConnect("example.net", user: 'user', pass: 'pass');
+
     await _log('Compressing file ...');
 
     File fileToCompress = await _fileMock(
         fileName: 'fileToCompress.txt', content: 'uploaded into a zip file');
     final zipPath = (await getTemporaryDirectory()).path + '/$filename';
 
-    ftpConnect.zipFiles([fileToCompress.path], zipPath);
+    await FTPConnect.zipFiles([fileToCompress.path], zipPath);
 
     await _log('Uploading Zip file ...');
-    bool res = await ftpConnect.uploadFile(File(zipPath), pRetryCount: 2);
+    bool res =
+        await ftpConnect.uploadFileWithRetry(File(zipPath), pRetryCount: 2);
     await _log('Zip file uploaded: ' + (res ? 'SUCCESSFULLY' : 'FAILED'));
   }
 
@@ -187,17 +184,19 @@ class MyHomePage extends StatelessWidget {
 
     FTPConnect ftpConnect =
         FTPConnect("example.net", user: 'user', pass: 'pass');
+
     //here we just prepare a file as a path for the downloaded file
     File downloadedZipFile = await _fileMock(fileName: 'ZipDownloaded.zip');
-    bool res = await ftpConnect.downloadFile(ftpFileName, downloadedZipFile);
+    bool res =
+        await ftpConnect.downloadFileWithRetry(ftpFileName, downloadedZipFile);
     if (res) {
       await _log('Zip file downloaded  path: ${downloadedZipFile.path}');
       await _log('UnZip files...');
       await _log('origin zip file\n' +
           downloadedZipFile.path +
           '\n\n\n Extracted files\n' +
-          ftpConnect
-              .unZipFile(downloadedZipFile, downloadedZipFile.parent.path)
+          (await FTPConnect.unZipFile(
+                  downloadedZipFile, downloadedZipFile.parent.path))
               .reduce((v, e) => v + '\n' + e));
     } else {
       await _log('Zip file downloaded FAILED');
@@ -207,9 +206,12 @@ class MyHomePage extends StatelessWidget {
   Future<void> _downloadDirectory() async {
     FTPConnect ftpConnect =
         FTPConnect("example.net", user: 'user', pass: 'pass');
+
     await _log('Download Directory  ...');
 
-    var localDir = await getTemporaryDirectory();
+    var localDir =
+        Directory((await getExternalStorageDirectory()).path + '/flutter')
+          ..createSync(recursive: true);
     var res = await ftpConnect.downloadDirectory('flutter', localDir);
 
     await _log('Downloading directory: ' + (res ? 'SUCCESSFULLY' : 'FAILED'));
@@ -223,7 +225,9 @@ class MyHomePage extends StatelessWidget {
 
   ///mock a file for the demonstration example
   Future<File> _fileMock({fileName = 'FlutterTest.txt', content = ''}) async {
-    final Directory directory = await getTemporaryDirectory();
+    final Directory directory =
+        Directory((await getExternalStorageDirectory()).path + '/test')
+          ..createSync(recursive: true);
     final File file = File('${directory.path}/$fileName');
     await file.writeAsString(content);
     return file;

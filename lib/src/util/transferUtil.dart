@@ -11,12 +11,10 @@ class TransferUtil {
       case TransferMode.ascii:
         // Set to ASCII mode
         await socket.sendCommand('TYPE A');
-        await socket.readResponse();
         break;
       case TransferMode.binary:
         // Set to BINARY mode
         await socket.sendCommand('TYPE I');
-        await socket.readResponse();
         break;
       default:
         break;
@@ -53,7 +51,6 @@ class TransferUtil {
         //if there is no exception we exit the loop (return false to exit)
         return false;
       } catch (e) {
-        print(e);
         //ignore
       }
       //return true to loop again

@@ -6,16 +6,12 @@ class FTPFile {
   FTPFile(this._socket);
 
   Future<bool> rename(String sOldName, String sNewName) async {
-    await _socket.sendCommand('RNFR $sOldName');
-
-    String sResponse = await _socket.readResponse();
+    String sResponse = await _socket.sendCommand('RNFR $sOldName');
     if (!sResponse.startsWith('350')) {
       return false;
     }
 
-    await _socket.sendCommand('RNTO $sNewName');
-
-    sResponse = await _socket.readResponse();
+    sResponse = await _socket.sendCommand('RNTO $sNewName');
     if (!sResponse.startsWith('250')) {
       return false;
     }
@@ -24,9 +20,8 @@ class FTPFile {
   }
 
   Future<bool> delete(String sFilename) async {
-    await _socket.sendCommand('DELE $sFilename');
+    String sResponse = await _socket.sendCommand('DELE $sFilename');
 
-    String sResponse = await _socket.readResponse();
     return sResponse.startsWith('250');
   }
 
@@ -35,13 +30,11 @@ class FTPFile {
   }
 
   Future<int> size(String sFilename) async {
-    await _socket.sendCommand('SIZE $sFilename');
-
-    try{
-      String sResponse = await _socket.readResponse();
-      String size = sResponse.replaceAll('213 ','');
+    try {
+      String sResponse = await _socket.sendCommand('SIZE $sFilename');
+      String size = sResponse.replaceAll('213 ', '');
       return int.parse(size);
-    }catch(e){
+    } catch (e) {
       return -1;
     }
   }

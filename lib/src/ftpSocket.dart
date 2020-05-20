@@ -6,8 +6,6 @@ import 'package:ftpconnect/src/debug/debugLog.dart';
 import '../ftpconnect.dart';
 
 class FTPSocket {
-  final Encoding _codec = Utf8Codec();
-
   final String host;
   final int port;
   final DebugLog _log;
@@ -20,41 +18,33 @@ class FTPSocket {
   /// Read the FTP Server response from the Stream
   ///
   /// Blocks until data is received!
-  Future<String> readResponse([bool bOptional = false]) async {
-    StringBuffer buffer = StringBuffer();
-    int iStart = DateTime.now().millisecondsSinceEpoch;
-
+  Future<String> _readResponse() async {
+    String sResponse;
     await Future.doWhile(() async {
-      int iToRead = _socket.available();
-
-      if (iToRead > 0) {
-        buffer.write(_codec.decode(_socket.read(iToRead)));
+      if (_socket.available() > 0) {
+        sResponse = String.fromCharCodes(_socket.read()).trim();
+        return false;
       }
-
-      if (iToRead == 0 && buffer.length == 0) {
-        int iCurrent = DateTime.now().millisecondsSinceEpoch;
-        if (iCurrent - iStart > _timeout * 1000) {
-          throw FTPException('Timeout reached for Receive', '');
-        }
-        await Future.delayed(Duration(milliseconds: 200));
-      }
-      if (iToRead > 0 || (buffer.length == 0 && !bOptional)) return true;
-      return false;
+      await Future.delayed(Duration(milliseconds: 200));
+      return true;
+    }).timeout(Duration(seconds: _timeout), onTimeout: () {
+      throw FTPException('Timeout reached for Receiving response !');
     });
 
-    String sResponse = buffer.toString().trimRight();
     _log.log('< $sResponse');
     return sResponse;
   }
 
-  /// Send a command to the FTP Server
-  Future<void> sendCommand(String sCommand) async {
-    if (_socket.available() > 0) {
-      await readResponse();
-    }
+  /// Send a command [cmd] to the FTP Server
+  /// if [waitResponse] the function waits for the reply, other wise return ''
+  Future<String> sendCommand(String cmd, {bool waitResponse = true}) async {
+    _log.log('> $cmd');
+    _socket.write(Utf8Codec().encode('$cmd\r\n'));
 
-    _log.log('> $sCommand');
-    _socket.write(_codec.encode('$sCommand\r\n'));
+    if (waitResponse == true) {
+      return await _readResponse();
+    }
+    return '';
   }
 
   /// Connect to the FTP Server and Login with [user] and [pass]
@@ -64,23 +54,18 @@ class FTPSocket {
         timeout: Duration(seconds: _timeout));
 
     // Wait for Connect
-    String sResponse = await readResponse();
-    if (!sResponse.startsWith('220')) {
-      throw FTPException('Unknown response from FTP server', sResponse);
+    if (_socket == null) {
+      throw FTPException('Could not connect to $host ($port)');
     }
 
     // Send Username
-    await sendCommand('USER $user');
-
-    sResponse = await readResponse();
-    if (!sResponse.startsWith('331')) {
+    String sResponse = await sendCommand('USER $user');
+    if (!sResponse.startsWith('220')) {
       throw FTPException('Wrong username $user', sResponse);
     }
 
     // Send Password
-    await sendCommand('PASS $pass');
-
-    sResponse = await readResponse();
+    sResponse = await sendCommand('PASS $pass');
     if (!sResponse.startsWith('230')) {
       throw FTPException('Wrong password', sResponse);
     }

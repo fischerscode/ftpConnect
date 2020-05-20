@@ -151,7 +151,6 @@ FTPConnect.unZipFile(File zipFile, String destinationPath, {password});
 |`pass`|Password if not anonymous login|
 |`debug`|Enable Debug Logging|
 |`timeout`|Timeout in seconds to wait for responses (Defaults to 30)|
-|`bufferSize`|buffer size (Defaults to 1024 * 1024)|
 
 # [View more Examples](https://github.com/salim-lachdhaf/ftpconnect/tree/master/example)
 

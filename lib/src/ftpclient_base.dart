@@ -19,7 +19,6 @@ class FTPConnect {
   final String _user;
   final String _pass;
   FTPSocket _socket;
-  final int _bufferSize;
   final DebugLog _log;
 
   /// Create a FTP Client instance
@@ -39,7 +38,6 @@ class FTPConnect {
       int bufferSize = 1024 * 1024})
       : _user = user,
         _pass = pass,
-        _bufferSize = bufferSize,
         _log = debug ? PrintLog() : NoOpLogger() {
     _socket = FTPSocket(host, port, _log, timeout);
   }
@@ -135,9 +133,9 @@ class FTPConnect {
       {String pRemoteName = '', int pRetryCount = 1}) {
     Future<bool> uploadFileRetry() async {
       await this.connect();
-      await this.uploadFile(fileToUpload, sRemoteName: pRemoteName);
+      bool res = await this.uploadFile(fileToUpload, sRemoteName: pRemoteName);
       await this.disconnect();
-      return true;
+      return res;
     }
 
     return TransferUtil.retryAction(() => uploadFileRetry(), pRetryCount);

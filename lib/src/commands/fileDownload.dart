@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import '../ftpExceptions.dart';
@@ -19,7 +18,7 @@ class FileDownload {
   Future<bool> downloadFile(String sRemoteName, File fLocalFile) async {
     _log.log('Download $sRemoteName to ${fLocalFile.path}');
 
-    if(! await FTPFile(_socket).exist(sRemoteName)){
+    if (!await FTPFile(_socket).exist(sRemoteName)) {
       throw FTPException('Remote File $sRemoteName does not exist!');
     }
 
@@ -27,49 +26,27 @@ class FileDownload {
     await TransferUtil.setTransferMode(_socket, _mode);
 
     // Enter passive mode
-    await _socket.sendCommand('PASV');
-
-    String sResponse = await _socket.readResponse();
+    String sResponse = await _socket.sendCommand('PASV');
     if (!sResponse.startsWith('227')) {
       throw FTPException('Could not start Passive Mode', sResponse);
     }
 
-    int iPort = TransferUtil.parsePort(sResponse);
-
-    await _socket.sendCommand('RETR $sRemoteName');
+    //the response will be the file, witch will be loaded with another socket
+    await _socket.sendCommand('RETR $sRemoteName', waitResponse: false);
 
     // Data Transfer Socket
+    int iPort = TransferUtil.parsePort(sResponse);
     _log.log('Opening DataSocket to Port $iPort');
-    RawSocket dataSocket = await RawSocket.connect(_socket.host, iPort);
+    final Socket dataSocket = await Socket.connect(_socket.host, iPort);
+    _log.log('Start downloading...');
 
-    RandomAccessFile lFile = await fLocalFile.open(mode: FileMode.writeOnly);
-
-    int iRead = 0;
-    dataSocket.listen((event) async {
-      // Transfer file
-      switch (event) {
-        case RawSocketEvent.read:
-          var buffer = dataSocket.read();
-          await lFile.writeFrom(buffer);
-          iRead += buffer.length;
-
-          break;
-        default:
-          break;
-      }
-    }, onDone: () async {
-      _log.log('Downloaded: $iRead B');
-      await dataSocket.close();
-      await lFile.flush();
-      await lFile.close();
-    }, onError: (e) {
-      print(e);
-    });
-
-    await _socket.readResponse();
+    var sink = fLocalFile.openWrite(mode: FileMode.writeOnly);
+    await sink.addStream(dataSocket.asBroadcastStream());
+    sink.flush();
+    sink.close();
+    await dataSocket.close();
 
     _log.log('File Downloaded!');
-    await _socket.readResponse(true);
     return true;
   }
 }

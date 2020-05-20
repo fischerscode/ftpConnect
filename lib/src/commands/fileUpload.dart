@@ -24,38 +24,30 @@ class FileUpload {
     await TransferUtil.setTransferMode(_socket, _mode);
 
     // Enter passive mode
-    await _socket.sendCommand('PASV');
-
-    String sResponse = await _socket.readResponse();
+    String sResponse = await _socket.sendCommand('PASV');
     if (!sResponse.startsWith('227')) {
       throw FTPException('Could not start Passive Mode', sResponse);
     }
-
-    int iPort = TransferUtil.parsePort(sResponse);
 
     // Store File
     String sFilename = sRemoteName;
     if (sFilename == null || sFilename.isEmpty) {
       sFilename = basename(fFile.path);
     }
-   await _socket.sendCommand('STOR $sFilename');
+
+    //The response is the file to upload, witch will be managed by another socket
+    await _socket.sendCommand('STOR $sFilename', waitResponse: false);
 
     // Data Transfer Socket
     final readStream = fFile.openRead();
+    int iPort = TransferUtil.parsePort(sResponse);
     _log.log('Opening DataSocket to Port $iPort');
-    final dataSocket = await Socket.connect(_socket.host, iPort);
-
-    final acceptResponse = await _socket.readResponse();
-    _log.log('response $acceptResponse');
+    final Socket dataSocket = await Socket.connect(_socket.host, iPort);
 
     await dataSocket.addStream(readStream);
-    await dataSocket.flush();
     await dataSocket.close();
 
     _log.log('File Uploaded!');
-
-    final fileReceivedResponse = await _socket.readResponse();
-    _log.log('second response $fileReceivedResponse');
     return true;
   }
 }
