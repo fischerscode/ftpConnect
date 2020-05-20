@@ -2,11 +2,11 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 
-import '../ftpexceptions.dart';
-import '../ftpsocket.dart';
-import '../transfermode.dart';
-import '../debug/debuglog.dart';
-import '../util/transferutil.dart';
+import '../ftpExceptions.dart';
+import '../ftpSocket.dart';
+import '../transferMode.dart';
+import '../debug/debugLog.dart';
+import '../util/transferUtil.dart';
 
 class FileUpload {
   final FTPSocket _socket;
@@ -17,16 +17,16 @@ class FileUpload {
   FileUpload(this._socket, this._mode, this._log);
 
   /// Upload File [fFile] to the current directory with [sRemoteName] (using filename if not set)
-  Future<void> uploadFile(File fFile, [String sRemoteName = '']) async {
+  Future<bool> uploadFile(File fFile, [String sRemoteName = '']) async {
     _log.log('Upload File: ${fFile.path}');
 
     // Transfer Mode
-    TransferUtil.setTransferMode(_socket, _mode);
+    await TransferUtil.setTransferMode(_socket, _mode);
 
     // Enter passive mode
-    _socket.sendCommand('PASV');
+    await _socket.sendCommand('PASV');
 
-    String sResponse = _socket.readResponse();
+    String sResponse = await _socket.readResponse();
     if (!sResponse.startsWith('227')) {
       throw FTPException('Could not start Passive Mode', sResponse);
     }
@@ -38,14 +38,14 @@ class FileUpload {
     if (sFilename == null || sFilename.isEmpty) {
       sFilename = basename(fFile.path);
     }
-    _socket.sendCommand('STOR $sFilename');
+   await _socket.sendCommand('STOR $sFilename');
 
     // Data Transfer Socket
     final readStream = fFile.openRead();
     _log.log('Opening DataSocket to Port $iPort');
     final dataSocket = await Socket.connect(_socket.host, iPort);
 
-    final acceptResponse = _socket.readResponse();
+    final acceptResponse = await _socket.readResponse();
     _log.log('response $acceptResponse');
 
     await dataSocket.addStream(readStream);
@@ -54,7 +54,8 @@ class FileUpload {
 
     _log.log('File Uploaded!');
 
-    final fileReceivedResponse = _socket.readResponse();
+    final fileReceivedResponse = await _socket.readResponse();
     _log.log('second response $fileReceivedResponse');
+    return true;
   }
 }

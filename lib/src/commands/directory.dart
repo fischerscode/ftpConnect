@@ -1,63 +1,63 @@
 import 'dart:io';
 
 import 'package:ftpconnect/ftpconnect.dart';
-import 'package:ftpconnect/src/dto/FTPEnty.dart';
-import 'package:ftpconnect/src/util/transferutil.dart';
+import 'package:ftpconnect/src/dto/FTPEntry.dart';
+import 'package:ftpconnect/src/util/transferUtil.dart';
 
-import '../ftpexceptions.dart';
-import '../ftpsocket.dart';
+import '../ftpExceptions.dart';
+import '../ftpSocket.dart';
 
 class FTPDirectory {
   final FTPSocket _socket;
 
   FTPDirectory(this._socket);
 
-  bool makeDirectory(String sName) {
-    _socket.sendCommand('MKD $sName');
+  Future<bool> makeDirectory(String sName) async {
+    await _socket.sendCommand('MKD $sName');
 
-    String sResponse = _socket.readResponse();
+    String sResponse = await _socket.readResponse();
 
     return sResponse.startsWith('257');
   }
 
-  bool deleteDirectory(String sName) {
-    _socket.sendCommand('RMD $sName');
+  Future<bool> deleteDirectory(String sName) async {
+    await _socket.sendCommand('RMD $sName');
 
-    String sResponse = _socket.readResponse();
-
-    return sResponse.startsWith('250');
-  }
-
-  bool changeDirectory(String sName) {
-    _socket.sendCommand('CWD $sName');
-
-    String sResponse = _socket.readResponse();
+    String sResponse = await _socket.readResponse();
 
     return sResponse.startsWith('250');
   }
 
-  String currentDirectory() {
-    _socket.sendCommand('PWD');
+  Future<bool> changeDirectory(String sName) async {
+    await _socket.sendCommand('CWD $sName');
 
-    String sResponse = _socket.readResponse();
+    String sResponse = await _socket.readResponse();
+
+    return sResponse.startsWith('250');
+  }
+
+  Future<String> currentDirectory() async {
+    await _socket.sendCommand('PWD');
+
+    String sResponse = await _socket.readResponse();
     if (!sResponse.startsWith('257')) {
       throw FTPException('Failed to get current working directory', sResponse);
     }
 
     int iStart = sResponse.indexOf('"') + 1;
-    int iEnde = sResponse.lastIndexOf('"');
+    int iEnd = sResponse.lastIndexOf('"');
 
-    return sResponse.substring(iStart, iEnde);
+    return sResponse.substring(iStart, iEnd);
   }
 
-  List<FTPEntry> listDirectoryContent() {
+  Future<List<FTPEntry>> listDirectoryContent() async {
     // Transfer mode
-    TransferUtil.setTransferMode(_socket, TransferMode.ascii);
+    await TransferUtil.setTransferMode(_socket, TransferMode.ascii);
 
     // Enter passive mode
-    _socket.sendCommand('PASV');
+    await _socket.sendCommand('PASV');
 
-    String sResponse = _socket.readResponse();
+    String sResponse = await _socket.readResponse();
     if (!sResponse.startsWith('227')) {
       throw FTPException('Could not start Passive Mode', sResponse);
     }
@@ -65,39 +65,39 @@ class FTPDirectory {
     int iPort = TransferUtil.parsePort(sResponse);
 
     // Directoy content listing
-    _socket.sendCommand('MLSD');
+    await _socket.sendCommand('MLSD');
 
     // Data transfer socket
-    RawSynchronousSocket dataSocket =
-        RawSynchronousSocket.connectSync(_socket.host, iPort);
+    RawSocket dataSocket = await RawSocket.connect(_socket.host, iPort);
 
-    sResponse = _socket.readResponse();
+    sResponse = await _socket.readResponse();
     if (!sResponse.startsWith('150')) {
       throw FTPException('Can\'t get content of directory.', sResponse);
     }
 
-    int iToRead = 0;
     List<int> lstDirectoryListing = List<int>();
 
-    do {
+    await Future.doWhile(() async {
+      int iToRead = dataSocket.available();
+
       if (iToRead > 0) {
         List<int> buffer = List<int>(iToRead);
-        dataSocket.readIntoSync(buffer);
+        buffer = dataSocket.read(iToRead);
         buffer.forEach(lstDirectoryListing.add);
       }
 
-      iToRead = dataSocket.available();
-
-      if (iToRead == 0 || lstDirectoryListing.isEmpty) {
-        sleep(Duration(milliseconds: 500));
+      if (iToRead == 0) {
+        await Future.delayed(Duration(milliseconds: 1000));
         iToRead = dataSocket.available();
       }
-    } while (iToRead > 0 || lstDirectoryListing.isEmpty);
+      if (iToRead > 0) return true;
+      return false;
+    });
 
-    dataSocket.closeSync();
+    await dataSocket.close();
 
     if (!sResponse.contains('226')) {
-      sResponse = _socket.readResponse(true);
+      sResponse = await _socket.readResponse(true);
       if (!sResponse.startsWith('226')) {
         throw FTPException('Can\'t get content of directory.', sResponse);
       }

@@ -1,7 +1,8 @@
 name: ftpconnect
 description: Flutter simple and robust dart FTP Connect Library to interact with FTP Servers with possibility of zip and unzip files.
 version: 0.1.4
-author: SalimDev <salimlachdef@gmail.com>
+authors:
+  - SalimDev <salimlachdef@gmail.com>
 homepage: https://github.com/salim-lachdhaf
 git: https://github.com/salim-lachdhaf/ftpConnect
 repository: https://github.com/salim-lachdhaf/ftpConnect
@@ -10,7 +11,6 @@ environment:
   sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
-  ftpclient: ^0.8.0
   archive: ^2.0.13
   path: ^1.6.4
   flutter:
@@ -21,3 +21,4 @@ dev_dependencies:
     sdk: flutter
 
 flutter:
+  uses-material-design: true

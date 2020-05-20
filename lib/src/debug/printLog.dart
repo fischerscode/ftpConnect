@@ -1,4 +1,4 @@
-import 'debuglog.dart';
+import 'debugLog.dart';
 
 class PrintLog implements DebugLog {
   @override

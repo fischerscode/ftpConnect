@@ -4,7 +4,7 @@ class FTPEntry {
   final String name;
   final DateTime modifyTime;
   final String persmission;
-  final String type;
+  final FTPEntryType type;
   final int size;
   final String unique;
   final String group;
@@ -37,7 +37,7 @@ class FTPEntry {
     String _name;
     DateTime _modifyTime;
     String _persmission;
-    String _type;
+    FTPEntryType _type;
     int _size = 0;
     String _unique;
     String _group;
@@ -72,7 +72,7 @@ class FTPEntry {
             _size = int.parse(prop[1]);
             break;
           case 'type':
-            _type = prop[1];
+            _type = prop[1] == 'dir' ? FTPEntryType.DIR : FTPEntryType.FILE;
             break;
           case 'unique':
             _unique = prop[1];
@@ -107,3 +107,5 @@ class FTPEntry {
   String toString() =>
       'name=$name;modifyTime=$modifyTime;permission=$persmission;type=$type;size=$size;unique=$unique;group=$group;mode=$mode;owner=$owner';
 }
+
+enum FTPEntryType { FILE, DIR }
