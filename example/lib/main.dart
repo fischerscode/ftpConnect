@@ -109,29 +109,37 @@ class MyHomePage extends StatelessWidget {
   }
 
   Future<void> _uploadWithRetry() async {
-    FTPConnect ftpConnect =
-        FTPConnect("example.net", user: 'user', pass: 'pass');
+    try {
+      FTPConnect ftpConnect =
+          FTPConnect("example.net", user: 'user', pass: 'pass');
 
-    File fileToUpload = await _fileMock(
-        fileName: 'uploadwithRetry.txt', content: 'uploaded with Retry');
-    await _log('Uploading ...');
-    bool res =
-        await ftpConnect.uploadFileWithRetry(fileToUpload, pRetryCount: 2);
-    await _log('file uploaded: ' + (res ? 'SUCCESSFULLY' : 'FAILED'));
+      File fileToUpload = await _fileMock(
+          fileName: 'uploadwithRetry.txt', content: 'uploaded with Retry');
+      await _log('Uploading ...');
+      bool res =
+          await ftpConnect.uploadFileWithRetry(fileToUpload, pRetryCount: 2);
+      await _log('file uploaded: ' + (res ? 'SUCCESSFULLY' : 'FAILED'));
+    } catch (e) {
+      await _log('Downloading FAILED: ${e.toString()}');
+    }
   }
 
   Future<void> _downloadWithRetry() async {
-    await _log('Downloading ...');
-    FTPConnect ftpConnect =
-        FTPConnect("example.net", user: 'user', pass: 'pass');
+    try {
+      await _log('Downloading ...');
+      FTPConnect ftpConnect =
+          FTPConnect("example.net", user: 'user', pass: 'pass');
 
-    String fileName = 'flutter/test.txt';
-    //here we just prepare a file as a path for the downloaded file
-    File downloadedFile = await _fileMock(fileName: 'downloadwithRetry.txt');
-    bool res = await ftpConnect.downloadFileWithRetry(fileName, downloadedFile,
-        pRetryCount: 1);
-    await _log('file downloaded  ' +
-        (res ? 'path: ${downloadedFile.path}' : 'FAILED'));
+      String fileName = 'flutter/test.txt';
+      //here we just prepare a file as a path for the downloaded file
+      File downloadedFile = await _fileMock(fileName: 'downloadwithRetry.txt');
+      bool res = await ftpConnect
+          .downloadFileWithRetry(fileName, downloadedFile, pRetryCount: 2);
+      await _log('file downloaded  ' +
+          (res ? 'path: ${downloadedFile.path}' : 'FAILED'));
+    } catch (e) {
+      await _log('Downloading FAILED: ${e.toString()}');
+    }
   }
 
   Future<void> _downloadStepByStep() async {
@@ -151,70 +159,83 @@ class MyHomePage extends StatelessWidget {
       await _log('file downloaded path: ${downloadedFile.path}');
       await ftpConnect.disconnect();
     } catch (e) {
-      await _log('file downloaded : FAILED');
+      await _log('Downloading FAILED: ${e.toString()}');
     }
   }
 
   Future<void> _uploadWithCompress({String filename = 'flutterZip.zip'}) async {
-    FTPConnect ftpConnect =
-        FTPConnect("example.net", user: 'user', pass: 'pass');
+    try {
+      FTPConnect ftpConnect =
+          FTPConnect("example.net", user: 'user', pass: 'pass');
 
-    await _log('Compressing file ...');
+      await _log('Compressing file ...');
 
-    File fileToCompress = await _fileMock(
-        fileName: 'fileToCompress.txt', content: 'uploaded into a zip file');
-    final zipPath = (await getTemporaryDirectory()).path + '/$filename';
+      File fileToCompress = await _fileMock(
+          fileName: 'fileToCompress.txt', content: 'uploaded into a zip file');
+      final zipPath = (await getTemporaryDirectory()).path + '/$filename';
 
-    await FTPConnect.zipFiles([fileToCompress.path], zipPath);
+      await FTPConnect.zipFiles([fileToCompress.path], zipPath);
 
-    await _log('Uploading Zip file ...');
-    bool res =
-        await ftpConnect.uploadFileWithRetry(File(zipPath), pRetryCount: 2);
-    await _log('Zip file uploaded: ' + (res ? 'SUCCESSFULLY' : 'FAILED'));
+      await _log('Uploading Zip file ...');
+      bool res =
+          await ftpConnect.uploadFileWithRetry(File(zipPath), pRetryCount: 2);
+      await _log('Zip file uploaded: ' + (res ? 'SUCCESSFULLY' : 'FAILED'));
+    } catch (e) {
+      await _log('Upload FAILED: ${e.toString()}');
+    }
   }
 
   Future<void> _downloadZipAndUnZip() async {
-    //this will upload a flutterZip.zip file (create a ftp file to be downloaded)
-    String ftpFileName = 'flutterZip.zip';
-    await _uploadWithCompress(filename: ftpFileName);
-    //we delete the file locally
-    File((await getTemporaryDirectory()).path + '/$ftpFileName').deleteSync();
-    //start downloading the zip file
-    await _log('Downloading Zip file...');
+    try {
+      //this will upload a flutterZip.zip file (create a ftp file to be downloaded)
+      String ftpFileName = 'flutterZip.zip';
+      await _uploadWithCompress(filename: ftpFileName);
+      //we delete the file locally
+      File((await getTemporaryDirectory()).path + '/$ftpFileName').deleteSync();
+      //start downloading the zip file
+      await _log('Downloading Zip file...');
 
-    FTPConnect ftpConnect =
-        FTPConnect("example.net", user: 'user', pass: 'pass');
+      FTPConnect ftpConnect =
+          FTPConnect("example.net", user: 'user', pass: 'pass');
 
-    //here we just prepare a file as a path for the downloaded file
-    File downloadedZipFile = await _fileMock(fileName: 'ZipDownloaded.zip');
-    bool res =
-        await ftpConnect.downloadFileWithRetry(ftpFileName, downloadedZipFile);
-    if (res) {
-      await _log('Zip file downloaded  path: ${downloadedZipFile.path}');
-      await _log('UnZip files...');
-      await _log('origin zip file\n' +
-          downloadedZipFile.path +
-          '\n\n\n Extracted files\n' +
-          (await FTPConnect.unZipFile(
-                  downloadedZipFile, downloadedZipFile.parent.path))
-              .reduce((v, e) => v + '\n' + e));
-    } else {
-      await _log('Zip file downloaded FAILED');
+      //here we just prepare a file as a path for the downloaded file
+      File downloadedZipFile = await _fileMock(fileName: 'ZipDownloaded.zip');
+      bool res = await ftpConnect.downloadFileWithRetry(
+          ftpFileName, downloadedZipFile);
+      if (res) {
+        await _log('Zip file downloaded  path: ${downloadedZipFile.path}');
+        await _log('UnZip files...');
+        await _log('origin zip file\n' +
+            downloadedZipFile.path +
+            '\n\n\n Extracted files\n' +
+            (await FTPConnect.unZipFile(
+                    downloadedZipFile, downloadedZipFile.parent.path))
+                .reduce((v, e) => v + '\n' + e));
+      } else {
+        await _log('Zip file downloaded FAILED');
+      }
+    } catch (e) {
+      await _log('Downloading FAILED: ${e.toString()}');
     }
   }
 
   Future<void> _downloadDirectory() async {
-    FTPConnect ftpConnect =
-        FTPConnect("example.net", user: 'user', pass: 'pass');
+    try {
+      FTPConnect ftpConnect =
+          FTPConnect("example.net", user: 'user', pass: 'pass');
 
-    await _log('Download Directory  ...');
+      await _log('Download Directory  ...');
 
-    var localDir =
-        Directory((await getExternalStorageDirectory()).path + '/flutter')
-          ..createSync(recursive: true);
-    var res = await ftpConnect.downloadDirectory('flutter', localDir);
+      var localDir =
+          Directory((await getExternalStorageDirectory()).path + '/flutter')
+            ..createSync(recursive: true);
+      var res = await ftpConnect.downloadDirectory(
+          'entrant/ND2/TabErwan/DashBoard', localDir);
 
-    await _log('Downloading directory: ' + (res ? 'SUCCESSFULLY' : 'FAILED'));
+      await _log('Downloading directory: ' + (res ? 'SUCCESSFULLY' : 'FAILED'));
+    } catch (e) {
+      await _log('Downloading directory FAILED: ${e.toString()}');
+    }
   }
 
   ///an auxiliary function that manage showed log to UI

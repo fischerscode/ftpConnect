@@ -18,7 +18,7 @@ class FTPSocket {
   /// Read the FTP Server response from the Stream
   ///
   /// Blocks until data is received!
-  Future<String> _readResponse() async {
+  Future<String> readResponse() async {
     String sResponse;
     await Future.doWhile(() async {
       if (_socket.available() > 0) {
@@ -42,7 +42,7 @@ class FTPSocket {
     _socket.write(Utf8Codec().encode('$cmd\r\n'));
 
     if (waitResponse == true) {
-      return await _readResponse();
+      return await readResponse();
     }
     return '';
   }

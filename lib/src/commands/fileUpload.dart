@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 
-import '../ftpExceptions.dart';
 import '../ftpSocket.dart';
 import '../transferMode.dart';
 import '../debug/debugLog.dart';
@@ -24,10 +23,7 @@ class FileUpload {
     await TransferUtil.setTransferMode(_socket, _mode);
 
     // Enter passive mode
-    String sResponse = await _socket.sendCommand('PASV');
-    if (!sResponse.startsWith('227')) {
-      throw FTPException('Could not start Passive Mode', sResponse);
-    }
+    String sResponse = await TransferUtil.enterPassiveMode(_socket);
 
     // Store File
     String sFilename = sRemoteName;
@@ -39,13 +35,18 @@ class FileUpload {
     await _socket.sendCommand('STOR $sFilename', waitResponse: false);
 
     // Data Transfer Socket
-    final readStream = fFile.openRead();
     int iPort = TransferUtil.parsePort(sResponse);
     _log.log('Opening DataSocket to Port $iPort');
     final Socket dataSocket = await Socket.connect(_socket.host, iPort);
+    //Test if second socket connection accepted or not
+    sResponse = await TransferUtil.checkIsConnectionAccepted(_socket);
 
+    final readStream = fFile.openRead();
     await dataSocket.addStream(readStream);
     await dataSocket.close();
+
+    //Test if All data are well transferred
+    await TransferUtil.checkTransferOK(_socket, sResponse);
 
     _log.log('File Uploaded!');
     return true;

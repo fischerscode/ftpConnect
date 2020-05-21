@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:ftpconnect/ftpconnect.dart';
+
 import '../ftpSocket.dart';
 import '../transferMode.dart';
 
@@ -38,24 +40,56 @@ class TransferUtil {
   ///retry a function [retryCount] times, until exceed [retryCount] or execute the function successfully
   ///Return true if the future executed successfully , false other wises
   static Future<bool> retryAction(FutureOr<bool> action(), retryCount) async {
-    int lRetryCount = 0;
+    int lAttempts = 1;
     bool result = true;
     await Future.doWhile(() async {
-      if (lRetryCount++ >= retryCount) {
-        result = false;
-        //return false to exit the future loop
-        return false;
-      }
       try {
         result = await action();
         //if there is no exception we exit the loop (return false to exit)
         return false;
       } catch (e) {
-        //ignore
+        if (lAttempts++ >= retryCount) {
+          throw FTPException(e?.message);
+        }
       }
       //return true to loop again
       return true;
     });
     return result;
+  }
+
+  ///for Upload, Download, getDirectoryFileList , we pass in passive mode
+  ///that require a second socket that will handle the response from the
+  ///original socket [socket], So here we test if the connection to the primary
+  ///socket [socket] is accepted or not, if not we throw an exception.
+  static Future<String> checkIsConnectionAccepted(FTPSocket socket) async {
+    String sResponse = await socket.readResponse();
+    if (!sResponse.startsWith('150')) {
+      throw FTPException('Connection refused. ', sResponse);
+    }
+    return sResponse;
+  }
+
+  ///Test if All data are well transferred from the primary socket [socket] to
+  ///the secondary socket in the passive mode.
+  ///Test first if the response already sent in the previous reply [pResponse]
+  ///other wise read again socket [socket] response.
+  static Future<String> checkTransferOK(FTPSocket socket, pResponse) async {
+    if (!pResponse.contains('226')) {
+      pResponse = await socket.readResponse();
+      if (!pResponse.startsWith('226')) {
+        throw FTPException('Transfer Error.', pResponse);
+      }
+    }
+    return pResponse;
+  }
+
+  ///Tell the socket [socket] that we will enter in passive mode
+  static Future<String> enterPassiveMode(FTPSocket socket) async {
+    String sResponse = await socket.sendCommand('PASV');
+    if (!sResponse.startsWith('227')) {
+      throw FTPException('Could not start Passive Mode', sResponse);
+    }
+    return sResponse;
   }
 }

@@ -26,10 +26,7 @@ class FileDownload {
     await TransferUtil.setTransferMode(_socket, _mode);
 
     // Enter passive mode
-    String sResponse = await _socket.sendCommand('PASV');
-    if (!sResponse.startsWith('227')) {
-      throw FTPException('Could not start Passive Mode', sResponse);
-    }
+    String sResponse = await TransferUtil.enterPassiveMode(_socket);
 
     //the response will be the file, witch will be loaded with another socket
     await _socket.sendCommand('RETR $sRemoteName', waitResponse: false);
@@ -38,6 +35,9 @@ class FileDownload {
     int iPort = TransferUtil.parsePort(sResponse);
     _log.log('Opening DataSocket to Port $iPort');
     final Socket dataSocket = await Socket.connect(_socket.host, iPort);
+    // Test if second socket connection accepted or not
+    sResponse = await TransferUtil.checkIsConnectionAccepted(_socket);
+
     _log.log('Start downloading...');
 
     var sink = fLocalFile.openWrite(mode: FileMode.writeOnly);
@@ -45,6 +45,9 @@ class FileDownload {
     sink.flush();
     sink.close();
     await dataSocket.close();
+
+    //Test if All data are well transferred
+    await TransferUtil.checkTransferOK(_socket, sResponse);
 
     _log.log('File Downloaded!');
     return true;

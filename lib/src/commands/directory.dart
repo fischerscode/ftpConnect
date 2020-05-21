@@ -48,10 +48,7 @@ class FTPDirectory {
     await TransferUtil.setTransferMode(_socket, TransferMode.ascii);
 
     // Enter passive mode
-    String sResponse = await _socket.sendCommand('PASV');
-    if (!sResponse.startsWith('227')) {
-      throw FTPException('Could not start Passive Mode', sResponse);
-    }
+    String sResponse = await TransferUtil.enterPassiveMode(_socket);
 
     // Directoy content listing, the response will be handled by another socket
     await _socket.sendCommand('MLSD', waitResponse: false);
@@ -59,6 +56,8 @@ class FTPDirectory {
     // Data transfer socket
     int iPort = TransferUtil.parsePort(sResponse);
     Socket dataSocket = await Socket.connect(_socket.host, iPort);
+    //Test if second socket connection accepted or not
+    sResponse = await TransferUtil.checkIsConnectionAccepted(_socket);
 
     List<int> lstDirectoryListing = List();
     await dataSocket.listen((Uint8List data) {
@@ -66,6 +65,9 @@ class FTPDirectory {
     }).asFuture();
 
     await dataSocket.close();
+
+    //Test if All data are well transferred
+    await TransferUtil.checkTransferOK(_socket, sResponse);
 
     // Convert MLSD response into FTPEntry
     List<FTPEntry> lstFTPEntries = List<FTPEntry>();
