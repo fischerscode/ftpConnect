@@ -12,8 +12,8 @@ import 'package:path/path.dart';
 
 import 'commands/directory.dart';
 import 'dto/FTPEntry.dart';
+import 'ftpExceptions.dart';
 import 'ftpSocket.dart';
-import 'transferMode.dart';
 
 class FTPConnect {
   final String _user;
@@ -34,8 +34,7 @@ class FTPConnect {
       String user = 'anonymous',
       String pass = '',
       bool debug = false,
-      int timeout = 30,
-      int bufferSize = 1024 * 1024})
+      int timeout = 30})
       : _user = user,
         _pass = pass,
         _log = debug ? PrintLog() : NoOpLogger() {
@@ -148,7 +147,7 @@ class FTPConnect {
   /// (connect -> download -> disconnect) or there is a need for a number of attempts
   /// in case of a poor connexion for example
   Future<bool> downloadFileWithRetry(String pRemoteName, File pLocalFile,
-      {int pRetryCount = 2}) {
+      {int pRetryCount = 1}) {
     Future<bool> downloadFileRetry() async {
       await this.connect();
       bool res = await this.downloadFile(pRemoteName, pLocalFile);
@@ -181,8 +180,10 @@ class FTPConnect {
           }
         });
         return true;
+      } else {
+        throw FTPException('Cannot download directory',
+            '$pRemoteDir not found or inaccessible !');
       }
-      return false;
     }
 
     Future<bool> downloadDirRetry() async {

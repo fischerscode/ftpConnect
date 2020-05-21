@@ -2,7 +2,6 @@ import 'dart:io';
 
 import '../ftpExceptions.dart';
 import '../ftpSocket.dart';
-import '../transferMode.dart';
 import '../debug/debugLog.dart';
 import '../util/transferUtil.dart';
 import 'file.dart';

@@ -1,3 +1,5 @@
+## [0.1.6] - 2020.05.22
+* throw exception if directory doesn't exist
 ## [0.1.5] - 2020.05.21
 * improve directory download
 ## [0.1.4] - 2020.05.19

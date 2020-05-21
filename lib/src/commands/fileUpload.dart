@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:path/path.dart';
 
 import '../ftpSocket.dart';
-import '../transferMode.dart';
 import '../debug/debugLog.dart';
 import '../util/transferUtil.dart';
 
@@ -31,7 +30,7 @@ class FileUpload {
       sFilename = basename(fFile.path);
     }
 
-    //The response is the file to upload, witch will be managed by another socket
+    // The response is the file to upload, witch will be managed by another socket
     await _socket.sendCommand('STOR $sFilename', waitResponse: false);
 
     // Data Transfer Socket
@@ -45,7 +44,7 @@ class FileUpload {
     await dataSocket.addStream(readStream);
     await dataSocket.close();
 
-    //Test if All data are well transferred
+    // Test if All data are well transferred
     await TransferUtil.checkTransferOK(_socket, sResponse);
 
     _log.log('File Uploaded!');

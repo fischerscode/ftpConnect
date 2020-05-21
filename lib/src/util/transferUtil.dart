@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:ftpconnect/ftpconnect.dart';
 
 import '../ftpSocket.dart';
-import '../transferMode.dart';
 
 class TransferUtil {
   /// Set the Transfer mode on [socket] to [mode]
@@ -49,7 +48,7 @@ class TransferUtil {
         return false;
       } catch (e) {
         if (lAttempts++ >= retryCount) {
-          throw FTPException(e?.message);
+          throw e;
         }
       }
       //return true to loop again
@@ -93,3 +92,5 @@ class TransferUtil {
     return sResponse;
   }
 }
+
+enum TransferMode { ascii, binary }
