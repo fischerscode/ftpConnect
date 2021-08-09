@@ -112,11 +112,9 @@ class FTPSocket {
 
   setTransferMode(TransferMode mode) async {
     if (transferMode != mode) {
-      _log.log("Entering transfer mode");
+      _log.log("Entering transfer mode $mode");
       await TransferUtil.setTransferMode(this, mode);
       transferMode = mode;
-    } else {
-      _log.log("SKIP setting transfer mode ***********************");
     }
   }
 
