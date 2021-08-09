@@ -14,6 +14,8 @@ class FTPSocket {
   final bool secured;
   RawSocket? _socket;
 
+  TransferMode? transferMode;
+
   FTPSocket(this.host, this.port, this.secured, this._log, this.timeout);
 
   /// Read the FTP Server response from the Stream
@@ -71,6 +73,7 @@ class FTPSocket {
 
   /// Connect to the FTP Server and Login with [user] and [pass]
   Future<bool> connect(String user, String pass) async {
+    transferMode = null;
     _log.log('Connecting...');
 
     try {
@@ -105,6 +108,16 @@ class FTPSocket {
 
     _log.log('Connected!');
     return true;
+  }
+
+  setTransferMode(TransferMode mode) async {
+    if (transferMode != mode) {
+      _log.log("Entering transfer mode");
+      await TransferUtil.setTransferMode(this, mode);
+      transferMode = mode;
+    } else {
+      _log.log("SKIP setting transfer mode ***********************");
+    }
   }
 
   // Disconnect from the FTP Server

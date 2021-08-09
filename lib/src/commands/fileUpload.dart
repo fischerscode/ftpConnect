@@ -25,8 +25,7 @@ class FileUpload {
   }) async {
     _log.log('Upload File: ${fFile.path}');
 
-    // Transfer Mode
-    await TransferUtil.setTransferMode(_socket, _mode);
+    await _socket!.setTransferMode(_mode);
 
     // Enter passive mode
     String response =
