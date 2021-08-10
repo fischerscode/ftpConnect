@@ -57,11 +57,15 @@ class FTPConnect {
     TransferMode mode = TransferMode.binary,
     FileProgress? onProgress,
     bool supportIPV6 = true,
+    bool checkTransfer = true,
   }) {
-    return FileUpload(_socket, mode, _log).uploadFile(fFile,
-        remoteName: sRemoteName,
-        onProgress: onProgress,
-        supportIPV6: supportIPV6);
+    return FileUpload(_socket, mode, _log).uploadFile(
+      fFile,
+      remoteName: sRemoteName,
+      onProgress: onProgress,
+      supportIPV6: supportIPV6,
+      checkTransfer: checkTransfer,
+    );
   }
 
   /// Download the Remote File [sRemoteName] to the local File [fFile]
