@@ -34,7 +34,7 @@ class FileDownload {
     }
 
     // Transfer Mode
-    await TransferUtil.setTransferMode(_socket, _mode);
+    await _socket!.setTransferMode(_mode);
 
     // Enter passive mode
     var response = await TransferUtil.enterPassiveMode(_socket!, supportIPV6);

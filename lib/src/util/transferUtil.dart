@@ -80,7 +80,7 @@ class TransferUtil {
   ///socket [socket] is accepted or not, if not we throw an exception.
   static Future<String> checkIsConnectionAccepted(FTPSocket socket) async {
     String sResponse = await socket.readResponse();
-    if (!sResponse.startsWith('150')) {
+    if (!sResponse.startsWith('150') && !sResponse.startsWith('125')) {
       throw FTPException('Connection refused. ', sResponse);
     }
     return sResponse;

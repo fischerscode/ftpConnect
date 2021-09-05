@@ -22,11 +22,11 @@ class FileUpload {
     String remoteName = '',
     FileProgress? onProgress,
     bool supportIPV6 = true,
+    bool checkTransfer = true,
   }) async {
     _log.log('Upload File: ${fFile.path}');
 
-    // Transfer Mode
-    await TransferUtil.setTransferMode(_socket, _mode);
+    await _socket!.setTransferMode(_mode);
 
     // Enter passive mode
     String response =
@@ -66,8 +66,10 @@ class FileUpload {
 
     await dataSocket.close();
 
-    // Test if All data are well transferred
-    await TransferUtil.checkTransferOK(_socket, response);
+    if (checkTransfer) {
+      // Test if All data are well transferred
+      await TransferUtil.checkTransferOK(_socket, response);
+    }
 
     _log.log('File Uploaded!');
     return true;

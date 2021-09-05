@@ -50,7 +50,7 @@ class FTPDirectory {
     bool? supportIPV6 = true,
   }) async {
     // Transfer mode
-    await TransferUtil.setTransferMode(_socket, TransferMode.ascii);
+    await _socket.setTransferMode(TransferMode.ascii);
 
     // Enter passive mode
     var response = await TransferUtil.enterPassiveMode(_socket, supportIPV6);
