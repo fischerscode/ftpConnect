@@ -65,7 +65,6 @@ class FileUpload {
             double percentVal = double.tryParse(percent) ?? 100;
             if (percentVal.isInfinite || percentVal.isNaN) percentVal = 100;
             onProgress(percentVal, received, fileSize);
-            print("percent $percent");
           }
         },
       ),
