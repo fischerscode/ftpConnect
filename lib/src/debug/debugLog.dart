@@ -1,3 +1,3 @@
-abstract class DebugLog {
+abstract class FTPDebugLogger {
   void log(String sMessage);
 }

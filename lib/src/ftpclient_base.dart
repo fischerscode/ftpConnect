@@ -19,7 +19,7 @@ class FTPConnect {
   final String _user;
   final String _pass;
   late FTPSocket _socket;
-  final DebugLog _log;
+  final FTPDebugLogger _log;
 
   /// Create a FTP Client instance
   ///
@@ -35,10 +35,11 @@ class FTPConnect {
       String pass = '',
       bool debug = false,
       bool isSecured = false,
+      FTPDebugLogger? logger,
       int timeout = 30})
       : _user = user,
         _pass = pass,
-        _log = debug ? PrintLog() : NoOpLogger() {
+        _log = logger != null ? logger : (debug ? PrintLog() : NoOpLogger()) {
     _socket = FTPSocket(host, port, isSecured, _log, timeout);
   }
 

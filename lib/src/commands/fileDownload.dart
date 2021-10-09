@@ -14,7 +14,7 @@ typedef void FileProgress(
 class FileDownload {
   final FTPSocket? _socket;
   final TransferMode _mode;
-  final DebugLog _log;
+  final FTPDebugLogger _log;
 
   /// File Download Command
   FileDownload(this._socket, this._mode, this._log);

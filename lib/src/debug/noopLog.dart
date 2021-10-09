@@ -1,6 +1,6 @@
 import 'debugLog.dart';
 
-class NoOpLogger implements DebugLog {
+class NoOpLogger implements FTPDebugLogger {
   @override
   void log(String sMessage) {
     // No operation: ignore

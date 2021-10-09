@@ -1,6 +1,6 @@
 import 'debugLog.dart';
 
-class PrintLog implements DebugLog {
+class PrintLog implements FTPDebugLogger {
   @override
   void log(String sMessage) {
     print('[${_getTimestamp()}] $sMessage');
