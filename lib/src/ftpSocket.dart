@@ -9,7 +9,7 @@ import '../ftpconnect.dart';
 class FTPSocket {
   final String host;
   final int port;
-  final DebugLog _log;
+  final FTPDebugLogger _log;
   final int timeout;
   final bool secured;
   RawSocket? _socket;

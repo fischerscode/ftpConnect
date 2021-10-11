@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart';
@@ -11,7 +12,7 @@ import 'fileDownload.dart';
 class FileUpload {
   final FTPSocket? _socket;
   final TransferMode _mode;
-  final DebugLog _log;
+  final FTPDebugLogger _log;
 
   /// File Upload Command
   FileUpload(this._socket, this._mode, this._log);
@@ -49,21 +50,28 @@ class FileUpload {
     response = await TransferUtil.checkIsConnectionAccepted(_socket!);
 
     _log.log('Start uploading...');
-    final readStream = fFile.openRead();
+
     var received = 0;
     int fileSize = await fFile.length();
-    await readStream.listen((data) {
-      dataSocket.add(data);
-      if (onProgress != null) {
-        received += data.length;
-        var percent = ((received / fileSize) * 100).toStringAsFixed(2);
-        //in case that the file size is 0, then pass directly 100
-        double percentVal = double.tryParse(percent) ?? 100;
-        if (percentVal.isInfinite || percentVal.isNaN) percentVal = 100;
-        onProgress(percentVal, received, fileSize);
-      }
-    }).asFuture();
 
+    Stream<List<int>> readStream = fFile.openRead().transform(
+      StreamTransformer.fromHandlers(
+        handleData: (data, sink) {
+          sink.add(data);
+          if (onProgress != null) {
+            received += data.length;
+            var percent = ((received / fileSize) * 100).toStringAsFixed(2);
+            //in case that the file size is 0, then pass directly 100
+            double percentVal = double.tryParse(percent) ?? 100;
+            if (percentVal.isInfinite || percentVal.isNaN) percentVal = 100;
+            onProgress(percentVal, received, fileSize);
+          }
+        },
+      ),
+    );
+
+    await dataSocket.addStream(readStream);
+    await dataSocket.flush();
     await dataSocket.close();
 
     if (checkTransfer) {

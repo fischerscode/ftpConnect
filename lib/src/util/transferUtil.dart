@@ -115,7 +115,7 @@ class TransferUtil {
   static Future<String> enterPassiveMode(
       FTPSocket socket, bool? supportIPV6) async {
     var res = await socket.sendCommand(supportIPV6 == false ? 'PASV' : 'EPSV');
-    if (!isResponseStartsWith(res, [229, 227])) {
+    if (!isResponseStartsWith(res, [229, 227, 150])) {
       throw FTPException('Could not start Passive Mode', res);
     }
     return res;
