@@ -19,7 +19,7 @@ void main() async {
     timeout: 60,
   );
 
-  const String _testFileDir = 'test/testResFiles/';
+  const String _testFileDir = 'test/testResFiles';
   const String _localUploadFile = 'test_upload.txt';
   const String _localDownloadFile = 'test_download.txt';
   const String _localZip = 'testZip.zip';
@@ -175,13 +175,13 @@ void main() async {
 
     expect(
         await _ftpConnect.downloadFile(
-            fileName, File('$_testFileDir$_localDownloadFile'),
+            fileName, File('$_testFileDir/$_localDownloadFile'),
             onProgress: testDownloadProgress),
         equals(true));
 
     expect(
         await _ftpConnect.downloadFileWithRetry(
-            fileName, File('$_testFileDir$_localDownloadFile'),
+            fileName, File('$_testFileDir/$_localDownloadFile'),
             onProgress: testDownloadProgress),
         equals(true));
 
@@ -216,14 +216,14 @@ void main() async {
     //zip file
     expect(
         await FTPConnect.zipFiles(
-            ['$_testFileDir$_localUploadFile', _testFileDir, emptyDir.path],
+            ['$_testFileDir/$_localUploadFile', _testFileDir, emptyDir.path],
             '$_testFileDir$_localZip'),
         equals(true));
 
     //test unzip
     expect(
         await FTPConnect.unZipFile(
-            File('$_testFileDir$_localZip'), _localUnZipDir) is List<String>,
+            File('$_testFileDir/$_localZip'), _localUnZipDir) is List<String>,
         equals(true));
   });
 
