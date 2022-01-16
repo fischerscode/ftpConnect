@@ -15,7 +15,7 @@ jobs:
       - name: Install Dependencies
         run:  pub get
 
-      - run: dart format --dry-run --set-exit-if-changed .
+      - run: dart format --output=none --set-exit-if-changed .
       - run: dartanalyzer .
       # run  flutter widgets tests  and unit tests
       - run: pub run test --coverage=coverage && pub run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.packages --report-on=lib
