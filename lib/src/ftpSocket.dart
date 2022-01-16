@@ -30,7 +30,7 @@ class FTPSocket {
       while (_socket!.available() > 0) {
         sResponse.writeln(String.fromCharCodes(_socket!.read()!).trim());
         dataReceivedSuccessfully = true;
-        await Future.delayed(Duration(milliseconds: 300));
+        await Future.delayed(Duration(milliseconds: 500));
       }
       if (dataReceivedSuccessfully) return false;
 

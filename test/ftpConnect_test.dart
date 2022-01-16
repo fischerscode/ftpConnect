@@ -5,10 +5,19 @@ import 'package:ftpconnect/ftpconnect.dart';
 import 'package:test/test.dart';
 
 void main() async {
-  final FTPConnect _ftpConnect = new FTPConnect("speedtest.tele2.net",
-      user: "anonymous", pass: "anonymous", debug: true, port: 2120);
-  final FTPConnect _ftpConnect2 = new FTPConnect("demo.wftpserver.com",
-      user: "demo", pass: "demo", debug: true, timeout: 60);
+  final FTPConnect _ftpConnect = new FTPConnect(
+    "ftp.dlptest.com",
+    user: "dlpuser",
+    pass: "rNrKYTX9g7z3RgJRmxWuGHbeu",
+    debug: true,
+  );
+  final FTPConnect _ftpConnect2 = new FTPConnect(
+    "demo.wftpserver.com",
+    user: "demo",
+    pass: "demo",
+    debug: true,
+    timeout: 60,
+  );
 
   const String _testFileDir = 'test/testResFiles/';
   const String _localUploadFile = 'test_upload.txt';
@@ -70,12 +79,17 @@ void main() async {
 
     expect(await _ftpConnect.currentDirectory(), equals("/"));
 
+    String dirName = 'NoNameTest';
     //make sure that the folder does not exist
-    expect(await _ftpConnect.checkFolderExistence("NoName"), equals(false));
-    //create a new dir NoName (Fails because we do not have permissions)
-    expect(await _ftpConnect.createFolderIfNotExist('NoName'), equals(false));
+    expect(
+        await _ftpConnect
+            .checkFolderExistence("dirName" + DateTime.now().toString()),
+        equals(false));
+    await _ftpConnect.deleteEmptyDirectory(dirName);
+    //create a new dir NoName and change dir to that dir
+    expect(await _ftpConnect.createFolderIfNotExist(dirName), equals(true));
     //change directory
-    expect(await _ftpConnect.changeDirectory("upload"), equals(true));
+    expect(await _ftpConnect.changeDirectory(dirName), equals(true));
     //list directory content
     expect(
         (await _ftpConnect.listDirectoryContent(cmd: DIR_LIST_COMMAND.LIST))
@@ -84,8 +98,10 @@ void main() async {
     expect((await _ftpConnect.listDirectoryContentOnlyNames()) is List<String>,
         equals(true));
 
-    //delete directory => false because the folder is protected
-    expect(await _ftpConnect.deleteEmptyDirectory("upload"), equals(false));
+    //back to root
+    await _ftpConnect.changeDirectory('..');
+    //delete directory
+    expect(await _ftpConnect.deleteEmptyDirectory(dirName), equals(true));
     //try delete a non epty dir => crash because permission denied
     try {
       await _ftpConnect.deleteDirectory("../upload",
@@ -94,29 +110,29 @@ void main() async {
       expect(e is FTPException, equals(true));
     }
 
-    //try delete a non epty dir => crash because permission denied
-    try {
-      await _ftpConnect.deleteDirectory("not exist",
-          cmd: DIR_LIST_COMMAND.LIST);
-    } catch (e) {
-      expect(e is FTPException, equals(true));
-    }
-
+    //change directory to root
+    expect(await _ftpConnect.changeDirectory('/'), equals(true));
     //make directory => false because the folder is protected
-    expect(await _ftpConnect.makeDirectory("upload2"), equals(false));
+    expect(await _ftpConnect.createFolderIfNotExist(dirName), equals(true));
+    expect(await _ftpConnect.createFolderIfNotExist('newDir'), equals(true));
+
+    String fileName = 'myFileTest.txt';
+    expect(await _ftpConnect.uploadFile(await _fileMock(fileName: fileName)),
+        equals(true));
+
+    //change directory to root
+    expect(await _ftpConnect.changeDirectory('/'), equals(true));
 
     //download a dir => false to prevent long loading duration of the test
-    expect(await _ftpConnect2.connect(), equals(true));
-
     try {
-      bool res = await _ftpConnect2.downloadDirectory(
-          '/upload', Directory(_testFileDir)..createSync(),
+      bool res = await _ftpConnect.downloadDirectory(
+          dirName, Directory(_testFileDir)..createSync(),
           cmd: DIR_LIST_COMMAND.MLSD);
       expect(res, equals(true));
     } catch (e) {}
 
     try {
-      await _ftpConnect2.downloadDirectory(
+      await _ftpConnect.downloadDirectory(
           '/nonExist', Directory(_testFileDir)..createSync(),
           cmd: DIR_LIST_COMMAND.MLSD);
     } catch (e) {
@@ -129,9 +145,10 @@ void main() async {
 
   test('test ftpConnect File functions', () async {
     expect(await _ftpConnect.connect(), equals(true));
+    String dirName1 = 'NoNameTestFileFolder';
+    String fileName = 'myFile.txt';
     //change to the directory where we can work
-    expect(await _ftpConnect.changeDirectory("upload"), equals(true));
-    expect(await _ftpConnect.currentDirectory(), equals("/upload"));
+    expect(await _ftpConnect.createFolderIfNotExist('$dirName1'), equals(true));
 
     //test upload file (this file will be automatically deleted after upload by the server)
     void testUploadProgress(double p, int r, int fileSize) {
@@ -139,17 +156,18 @@ void main() async {
     }
 
     expect(
-        await _ftpConnect.uploadFile(await _fileMock(),
+        await _ftpConnect.uploadFile(await _fileMock(fileName: fileName),
             onProgress: testUploadProgress),
         equals(true));
 
     expect(
-        await _ftpConnect.uploadFileWithRetry(await _fileMock(),
+        await _ftpConnect.uploadFileWithRetry(
+            await _fileMock(fileName: fileName),
             onProgress: testUploadProgress),
         equals(true));
 
     //chech for file existence
-    expect(await _ftpConnect.existFile('../512KB.zip'), equals(true));
+    expect(await _ftpConnect.existFile(fileName), equals(true));
     //test download file
     void testDownloadProgress(double p, int r, int fileSize) {
       print('downloaded :$r byte =========> $p%');
@@ -157,13 +175,13 @@ void main() async {
 
     expect(
         await _ftpConnect.downloadFile(
-            '../512KB.zip', File('$_testFileDir$_localDownloadFile'),
+            fileName, File('$_testFileDir$_localDownloadFile'),
             onProgress: testDownloadProgress),
         equals(true));
 
     expect(
         await _ftpConnect.downloadFileWithRetry(
-            '../512KB.zip', File('$_testFileDir$_localDownloadFile'),
+            fileName, File('$_testFileDir$_localDownloadFile'),
             onProgress: testDownloadProgress),
         equals(true));
 
@@ -179,41 +197,15 @@ void main() async {
           equals(true));
     }
     //get file size
-    expect(await _ftpConnect.sizeFile('../512KB.zip'), equals(512 * 1024));
     expect(await _ftpConnect.sizeFile('../notExist.zip'), equals(-1));
-    //test delete file (false because the server is protected)
-    expect(await _ftpConnect.deleteFile('../512KB.zip'), equals(false));
 
     //test rename file (false because the server is protected)
-    expect(await _ftpConnect.rename('../512KB.zip', '../512kb.zip'),
-        equals(false));
-
-    expect(await _ftpConnect.disconnect(), equals(true));
-  });
-
-  test('test ftpConnect general functions', () async {
-    expect(await _ftpConnect.connect(), equals(true));
-    //change to the directory where we can work
-    expect(await _ftpConnect.changeDirectory("upload"), equals(true));
-
-    //download test
-    expect(
-        await _ftpConnect.downloadFileWithRetry(
-            '../512KB.zip', File('$_testFileDir$_localZip')),
+    expect(await _ftpConnect.rename(fileName, fileName + '_renamed.txt'),
         equals(true));
 
-    //download non exist file
-    try {
-      await _ftpConnect.downloadFileWithRetry(
-          '../51xx2KB.zip', File('$_testFileDir$_localZip'),
-          pRetryCount: 2);
-    } catch (e) {
-      assert(e is FTPException);
-    }
-
-    //upload file
+    //test delete file (false because the server is protected)
     expect(
-        await _ftpConnect.uploadFileWithRetry(await _fileMock()), equals(true));
+        await _ftpConnect.deleteFile(fileName + '_renamed.txt'), equals(true));
 
     expect(await _ftpConnect.disconnect(), equals(true));
   });
