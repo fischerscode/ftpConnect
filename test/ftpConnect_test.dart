@@ -19,7 +19,7 @@ void main() async {
     timeout: 60,
   );
 
-  const String _testFileDir = 'test/testResFiles';
+  const String _testFileDir = 'testResFiles';
   const String _localUploadFile = 'test_upload.txt';
   const String _localDownloadFile = 'test_download.txt';
   const String _localZip = 'testZip.zip';
@@ -166,7 +166,7 @@ void main() async {
             onProgress: testUploadProgress),
         equals(true));
 
-    //chech for file existence
+    //check for file existence
     expect(await _ftpConnect.existFile(fileName), equals(true));
     //test download file
     void testDownloadProgress(double p, int r, int fileSize) {
