@@ -6,15 +6,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: test and send to codeCov
-
+    container:
+      image: google/dart:2.12.0
     steps:
       # The branch or tag ref that triggered the workflow will be checked out.
       # https://github.com/actions/checkout
       - uses: actions/checkout@v2
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: beta
-          
       - name: Install Dependencies
         run: dart pub get
 
