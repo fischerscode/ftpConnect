@@ -1,4 +1,4 @@
-@Timeout(const Duration(minutes: 15))
+@Timeout(const Duration(minutes: 20))
 import 'dart:io';
 
 import 'package:ftpconnect/ftpconnect.dart';
@@ -23,7 +23,7 @@ void main() async {
   const String _localUploadFile = 'test_upload.txt';
   const String _localDownloadFile = 'test_download.txt';
   const String _localZip = 'test_zip.zip';
-  const String _localUnZipDir = 'test/test_znZip';
+  const String _localUnZipDir = 'test/test_dir_zip';
 
   ///mock a file for the demonstration example
   Future<File> _fileMock({fileName = _localUploadFile}) async {
@@ -186,7 +186,7 @@ void main() async {
         equals(true));
 
     //test download non exist file
-    var remoteFile = 'notExist.zip';
+    var remoteFile = 'not_exist.zip';
     try {
       await _ftpConnect.downloadFile(remoteFile, File('dist'));
     } catch (e) {
