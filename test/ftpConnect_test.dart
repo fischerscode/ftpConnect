@@ -28,7 +28,9 @@ void main() async {
   ///mock a file for the demonstration example
   Future<File> _fileMock({fileName = _localUploadFile}) async {
     final Directory directory = Directory(_testFileDir);
+    await directory.create(recursive: true);
     final File file = File('${directory.path}/$fileName');
+    await file.create(recursive: true);
     await file.writeAsString(DateTime.now().toString());
     return file;
   }
