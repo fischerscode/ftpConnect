@@ -58,17 +58,10 @@ class FTPSocket {
   }
 
   ///if we receive a response different then that we are waiting for
-  ///(both success or fail), we read again the response
+  ///return false
   Future<bool> _isResponseOK(
       String? response, List<int> successCode, List<int> failCode) async {
-    if (TransferUtil.isResponseStartsWith(response, failCode)) return false;
-    if (!TransferUtil.isResponseStartsWith(response, successCode)) {
-      response = await readResponse();
-      if (!TransferUtil.isResponseStartsWith(response, successCode)) {
-        return false;
-      }
-    }
-    return true;
+    return TransferUtil.isResponseStartsWith(response, successCode);
   }
 
   /// Connect to the FTP Server and Login with [user] and [pass]

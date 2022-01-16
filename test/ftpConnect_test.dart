@@ -143,6 +143,11 @@ void main() async {
             onProgress: testUploadProgress),
         equals(true));
 
+    expect(
+        await _ftpConnect.uploadFileWithRetry(await _fileMock(),
+            onProgress: testUploadProgress),
+        equals(true));
+
     //chech for file existence
     expect(await _ftpConnect.existFile('../512KB.zip'), equals(true));
     //test download file
@@ -152,6 +157,12 @@ void main() async {
 
     expect(
         await _ftpConnect.downloadFile(
+            '../512KB.zip', File('$_testFileDir$_localDownloadFile'),
+            onProgress: testDownloadProgress),
+        equals(true));
+
+    expect(
+        await _ftpConnect.downloadFileWithRetry(
             '../512KB.zip', File('$_testFileDir$_localDownloadFile'),
             onProgress: testDownloadProgress),
         equals(true));
@@ -208,10 +219,12 @@ void main() async {
   });
 
   test('test ftpConnect ZIP functions', () async {
+    Directory emptyDir = Directory('test/emptyDirectory/');
+    await emptyDir.create(recursive: true);
     //zip file
     expect(
         await FTPConnect.zipFiles(
-            ['$_testFileDir$_localUploadFile', _testFileDir],
+            ['$_testFileDir$_localUploadFile', _testFileDir, emptyDir.path],
             '$_testFileDir$_localZip'),
         equals(true));
 
@@ -262,6 +275,7 @@ void main() async {
     var data4 = 'drw-------    1 105';
     ftpEntry = FTPEntry.parse(data4, DIR_LIST_COMMAND.MLSD);
     expect(ftpEntry.name, equals(data4));
+
     expect(() => FTPEntry.parse(data4, DIR_LIST_COMMAND.LIST),
         throwsA(isA<FTPException>()));
 

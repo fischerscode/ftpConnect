@@ -48,8 +48,8 @@ class FTPEntry {
       this.additionalProperties);
 
   factory FTPEntry.parse(String? responseLine, DIR_LIST_COMMAND? cmd) {
-    if (responseLine == null)
-      throw FTPException('Can\'t parse a null response line');
+    if (responseLine == null || responseLine.trim().isEmpty)
+      throw FTPException('Can\'t parse a null or blank response line');
     if (cmd == DIR_LIST_COMMAND.LIST)
       return FTPEntry._parseListCommand(responseLine);
     else if (cmd == DIR_LIST_COMMAND.NLST)
@@ -59,11 +59,7 @@ class FTPEntry {
       return FTPEntry._parseMLSDCommand(responseLine);
   }
 
-  factory FTPEntry._parseMLSDCommand(final String? responseLine) {
-    if (responseLine == null || responseLine.trim().isEmpty) {
-      throw FTPException('Can\'t create instance from empty information');
-    }
-
+  factory FTPEntry._parseMLSDCommand(final String responseLine) {
     String? _name;
     DateTime? _modifyTime;
     String? _persmission;
@@ -146,25 +142,18 @@ class FTPEntry {
   /// SII servers format:
   /// 02-11-15  03:05PM      <DIR>     1410887680 directory
   /// 02-11-15  03:05PM               1410887680 file.avi
-  factory FTPEntry._parseListCommand(final String? responseLine) {
-    if (responseLine == null || responseLine.trim().isEmpty) {
-      throw FTPException('Can\'t create instance from empty information');
-    }
-
+  factory FTPEntry._parseListCommand(final String responseLine) {
     if (regexpLIST.hasMatch(responseLine))
       return FTPEntry._parseLIST(responseLine);
-    else
+    else if (regexpLISTSiiServers.hasMatch(responseLine))
       return FTPEntry._parseLISTiis(responseLine);
+    else
+      throw FTPException(
+          'Invalid format <$responseLine> for LIST command response !');
   }
 
   factory FTPEntry._parseLIST(final String responseLine) {
-    if (responseLine.trim().isEmpty)
-      throw FTPException('Can\'t create instance from empty information');
-    if (!regexpLIST.hasMatch(responseLine))
-      throw FTPException(
-          'Invalid format <$responseLine> for LIST command response !');
-
-    late String _name;
+    String? _name;
     DateTime? _modifyTime;
     String? _persmission;
     FTPEntryType? _type;
@@ -210,13 +199,6 @@ class FTPEntry {
   }
 
   factory FTPEntry._parseLISTiis(final String responseLine) {
-    if (responseLine.trim().isEmpty) {
-      throw FTPException('Can\'t create instance from empty information');
-    }
-    if (!regexpLISTSiiServers.hasMatch(responseLine))
-      throw FTPException(
-          'Invalid format <$responseLine> for LIST command response !');
-
     String? _name;
     DateTime? _modifyTime;
     String? _persmission;

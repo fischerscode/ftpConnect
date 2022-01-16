@@ -184,10 +184,18 @@ class FTPConnect {
   /// this strategy can be used when we don't need to go step by step
   /// (connect -> upload -> disconnect) or there is a need for a number of attemps
   /// in case of a poor connexion for example
-  Future<bool> uploadFileWithRetry(File fileToUpload,
-      {String pRemoteName = '', int pRetryCount = 1}) {
+  Future<bool> uploadFileWithRetry(
+    File fileToUpload, {
+    String pRemoteName = '',
+    int pRetryCount = 1,
+    FileProgress? onProgress,
+  }) {
     Future<bool> uploadFileRetry() async {
-      bool res = await this.uploadFile(fileToUpload, sRemoteName: pRemoteName);
+      bool res = await this.uploadFile(
+        fileToUpload,
+        sRemoteName: pRemoteName,
+        onProgress: onProgress,
+      );
       return res;
     }
 
@@ -200,10 +208,18 @@ class FTPConnect {
   /// this strategy can be used when we don't need to go step by step
   /// (connect -> download -> disconnect) or there is a need for a number of attempts
   /// in case of a poor connexion for example
-  Future<bool> downloadFileWithRetry(String pRemoteName, File pLocalFile,
-      {int pRetryCount = 1}) {
+  Future<bool> downloadFileWithRetry(
+    String pRemoteName,
+    File pLocalFile, {
+    int pRetryCount = 1,
+    FileProgress? onProgress,
+  }) {
     Future<bool> downloadFileRetry() async {
-      bool res = await this.downloadFile(pRemoteName, pLocalFile);
+      bool res = await this.downloadFile(
+        pRemoteName,
+        pLocalFile,
+        onProgress: onProgress,
+      );
       return res;
     }
 
