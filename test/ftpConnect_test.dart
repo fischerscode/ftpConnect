@@ -19,11 +19,11 @@ void main() async {
     timeout: 60,
   );
 
-  const String _testFileDir = 'test/testResFiles';
+  const String _testFileDir = 'test/test_res_files';
   const String _localUploadFile = 'test_upload.txt';
   const String _localDownloadFile = 'test_download.txt';
-  const String _localZip = 'testZip.zip';
-  const String _localUnZipDir = 'test/testUnZip';
+  const String _localZip = 'test_zip.zip';
+  const String _localUnZipDir = 'test/test_znZip';
 
   ///mock a file for the demonstration example
   Future<File> _fileMock({fileName = _localUploadFile}) async {
@@ -116,7 +116,7 @@ void main() async {
     expect(await _ftpConnect.createFolderIfNotExist(dirName), equals(true));
     expect(await _ftpConnect.createFolderIfNotExist('newDir'), equals(true));
 
-    String fileName = 'myFileTest.txt';
+    String fileName = 'my_file_test.txt';
     expect(await _ftpConnect.uploadFile(await _fileMock(fileName: fileName)),
         equals(true));
 
@@ -145,8 +145,8 @@ void main() async {
 
   test('test ftpConnect File functions', () async {
     expect(await _ftpConnect.connect(), equals(true));
-    String dirName1 = 'NoNameTestFileFolder';
-    String fileName = 'myFile.txt';
+    String dirName1 = 'no_name_test_file_folder';
+    String fileName = 'my_file.txt';
     //change to the directory where we can work
     expect(await _ftpConnect.createFolderIfNotExist('$dirName1'), equals(true));
 
@@ -211,7 +211,7 @@ void main() async {
   });
 
   test('test ftpConnect ZIP functions', () async {
-    Directory emptyDir = Directory('test/emptyDirectory/');
+    Directory emptyDir = Directory('test/empty_directory/');
     await emptyDir.create(recursive: true);
     //zip file
     expect(
