@@ -39,8 +39,8 @@ coverage_badge.svg
 nohup.out
 
 #test file
-#test/testResFiles/
-#test/testUnZip/
+test/testResFiles/
+test/testUnZip/
 
 # Android related
 **/android/**/gradle-wrapper.jar
