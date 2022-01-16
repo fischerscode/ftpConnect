@@ -11,13 +11,13 @@ void main() async {
     pass: "rNrKYTX9g7z3RgJRmxWuGHbeu",
     debug: true,
   );
-  final FTPConnect _ftpConnect2 = new FTPConnect(
-    "demo.wftpserver.com",
-    user: "demo",
-    pass: "demo",
-    debug: true,
-    timeout: 60,
-  );
+  // final FTPConnect _ftpConnect2 = new FTPConnect(
+  //   "demo.wftpserver.com",
+  //   user: "demo",
+  //   pass: "demo",
+  //   debug: true,
+  //   timeout: 60,
+  // );
 
   const String _testFileDir = 'test/test_res_files';
   const String _localUploadFile = 'test_upload.txt';
@@ -116,6 +116,8 @@ void main() async {
     expect(await _ftpConnect.changeDirectory('/'), equals(true));
     //make directory => false because the folder is protected
     expect(await _ftpConnect.createFolderIfNotExist(dirName), equals(true));
+    //change directory to root
+    expect(await _ftpConnect.changeDirectory('/$dirName'), equals(true));
     expect(await _ftpConnect.createFolderIfNotExist('newDir'), equals(true));
 
     String fileName = 'my_file_test.txt';
@@ -126,12 +128,16 @@ void main() async {
     expect(await _ftpConnect.changeDirectory('/'), equals(true));
 
     //download a dir => false to prevent long loading duration of the test
-    try {
-      bool res = await _ftpConnect.downloadDirectory(
-          dirName, Directory(_testFileDir)..createSync(),
-          cmd: DIR_LIST_COMMAND.MLSD);
-      expect(res, equals(true));
-    } catch (e) {}
+    bool res = await _ftpConnect.downloadDirectory(
+      dirName,
+      Directory(_testFileDir)..createSync(),
+      cmd: DIR_LIST_COMMAND.LIST,
+    );
+    expect(res, equals(true));
+
+    //change directory to root
+    expect(await _ftpConnect.changeDirectory('/'), equals(true));
+    await _ftpConnect.deleteDirectory(dirName, cmd: DIR_LIST_COMMAND.LIST);
 
     try {
       await _ftpConnect.downloadDirectory(
