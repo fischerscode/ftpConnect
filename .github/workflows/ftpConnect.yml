@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     name: test and send to codeCov
     container:
-      image: google/dart:2.14.0
+      image: google/dart:latest
     steps:
       # The branch or tag ref that triggered the workflow will be checked out.
       # https://github.com/actions/checkout
@@ -15,7 +15,7 @@ jobs:
       - name: Install Dependencies
         run:  pub get
 
-      - run: dartfmt --dry-run --set-exit-if-changed .
+      - run: dart format --dry-run --set-exit-if-changed .
       - run: dartanalyzer .
       # run  flutter widgets tests  and unit tests
       - run: pub run test --coverage=coverage && pub run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.packages --report-on=lib
