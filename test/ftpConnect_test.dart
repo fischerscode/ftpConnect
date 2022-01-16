@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 void main() async {
   final FTPConnect _ftpConnect = new FTPConnect("speedtest.tele2.net",
-      user: "anonymous", pass: "anonymous", debug: true,port :2120);
+      user: "anonymous", pass: "anonymous", debug: true, port: 2120);
   final FTPConnect _ftpConnect2 = new FTPConnect("demo.wftpserver.com",
       user: "demo", pass: "demo", debug: true, timeout: 60);
 
