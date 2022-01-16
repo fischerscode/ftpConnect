@@ -9,7 +9,7 @@ jobs:
     container:
       image: google/dart:2.12.0
     steps:
-      # The branch or tag ref that triggered the workflow will be checked out.
+      # The branch or tag ref that triggered the workflow  will be checked out.
       # https://github.com/actions/checkout
       - uses: actions/checkout@v2
       - name: Install Dependencies
