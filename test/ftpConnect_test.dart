@@ -79,7 +79,7 @@ void main() async {
 
     expect(await _ftpConnect.currentDirectory(), equals("/"));
 
-    String dirName = 'NoNameTest';
+    String dirName = 'no_name_test';
     //make sure that the folder does not exist
     expect(
         await _ftpConnect
