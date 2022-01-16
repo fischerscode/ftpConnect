@@ -219,7 +219,7 @@ void main() async {
     expect(
         await FTPConnect.zipFiles(
             ['$_testFileDir/$_localUploadFile', _testFileDir, emptyDir.path],
-            '$_testFileDir$_localZip'),
+            '$_testFileDir/$_localZip'),
         equals(true));
 
     //test unzip
