@@ -7,18 +7,18 @@ jobs:
     runs-on: macos-latest
     name: test and send to codeCov
     container:
-      image: google/dart:2.12.0
+      image: google/dart:latest
     steps:
       # The branch or tag ref that triggered the workflow  will be checked out.
       # https://github.com/actions/checkout
       - uses: actions/checkout@v2
       - name: Install Dependencies
-        run: dart pub get
+        run:  pub get
 
-      - run: dartfmt --dry-run --set-exit-if-changed .
+      - run: dart format --output=none --set-exit-if-changed .
       - run: dartanalyzer .
       # run  flutter widgets tests  and unit tests
-      - run: dart test --coverage=coverage && pub run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.packages --report-on=lib
+      - run: pub run test --coverage=coverage && pub run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.packages --report-on=lib
         # Upload coverage reports to Codecov
         # https://github.com/marketplace/actions/codecov
       - name: Upload coverage to Codecov
