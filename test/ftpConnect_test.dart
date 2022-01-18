@@ -11,6 +11,14 @@ void main() async {
     pass: "rNrKYTX9g7z3RgJRmxWuGHbeu",
     debug: true,
   );
+
+  final FTPConnect _ftpConnectSecured = new FTPConnect(
+    "ftp.dlptest.com",
+    user: "dlpuser",
+    pass: "rNrKYTX9g7z3RgJRmxWuGHbeu",
+    debug: true,
+    isSecured: true,
+  );
   // final FTPConnect _ftpConnect2 = new FTPConnect(
   //   "demo.wftpserver.com",
   //   user: "demo",
@@ -38,6 +46,8 @@ void main() async {
   test('test ftpConnect', () async {
     expect(await _ftpConnect.connect(), equals(true));
     expect(await _ftpConnect.disconnect(), equals(true));
+    expect(await _ftpConnectSecured.connect(), equals(true));
+    expect(await _ftpConnectSecured.disconnect(), equals(true));
   });
 
   test('test ftpConnect No log', () async {

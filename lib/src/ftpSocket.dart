@@ -70,21 +70,23 @@ class FTPSocket {
     _log.log('Connecting...');
 
     try {
-      if (secured == true)
-        _socket = await RawSecureSocket.connect(
-          host,
-          port,
-          timeout: Duration(seconds: timeout),
-          onBadCertificate: ((X509Certificate cert) => true),
-        );
-      else
-        _socket = await RawSocket.connect(
-          host,
-          port,
-          timeout: Duration(seconds: timeout),
-        );
+      _socket = await RawSocket.connect(
+        host,
+        port,
+        timeout: Duration(seconds: timeout),
+      );
     } catch (e) {
       throw FTPException('Could not connect to $host ($port)', e.toString());
+    }
+
+    if (secured) {
+      String? sResponse = await sendCommand('AUTH TLS');
+      if (!await _isResponseOK(sResponse, [234], [520])) {
+        throw FTPException('Could not pass to secure mode TLS', sResponse);
+      }
+
+      _socket = await RawSecureSocket.secure(_socket!,
+          onBadCertificate: (certificate) => true);
     }
 
     // Send Username
