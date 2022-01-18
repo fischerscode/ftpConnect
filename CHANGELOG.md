@@ -1,6 +1,6 @@
 ## [1.0.1] - 2022.01.18
 * Add secure mode TLS
-* Improve performance
+* improve performance
 ## [1.0.0] - 2021.05.01
 * migrate to null-Safety
 * add IPV6 support
